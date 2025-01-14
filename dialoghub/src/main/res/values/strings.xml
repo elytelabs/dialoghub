@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="choose_style">Choose Style</string>
+    <string name="choose_color">Choose Color</string>
+    <string name="choose_background">Choose Background</string>
+    <string name="sample_text">Sample Text</string>
+
+    <string name="transparency">Transparency</string>
+    <string name="back_button">Back Button</string>
+
+</resources>

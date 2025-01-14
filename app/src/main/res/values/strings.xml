@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DialogHub</string>
+
+    <string name="random_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et sollicitudin est, et placerat erat. Maecenas nec feugiat lorem. Aenean finibus dolor sed faucibus consectetur. Phasellus rhoncus mi in imperdiet ullamcorper. Cras volutpat sodales consequat. Vivamus vel leo id libero fringilla pharetra. Duis sed metus in magna mollis blandit. Morbi aliquam, eros et ultricies volutpat, metus risus dapibus dui, ac egestas nunc sapien a leo.</string>
+</resources>
