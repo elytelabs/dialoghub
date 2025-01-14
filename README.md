@@ -96,4 +96,4 @@ Contributions are welcome! Feel free to submit pull requests or report issues.
 
 ## License
 
-This project is licensed under the Apache License 2.0. For more details, see [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
+This project is licensed under the Apache License 2.0. For more details, see [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0.txt).
