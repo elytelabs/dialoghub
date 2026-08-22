@@ -4,7 +4,7 @@
 [![API](https://img.shields.io/badge/API-25%2B-brightgreen.svg)](https://android-arsenal.com/api?level=25)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-A lightweight Kotlin Android library that provides customizable dialogs for dynamically selecting **background images**, **custom fonts**, and **colors with transparency** — built with memory caching and zero-leak protections.
+A lightweight Kotlin Android library that provides customizable dialogs for dynamically selecting **background images**, **device gallery photos**, **custom fonts (with localized preview text)**, **palette colors with live transparency**, **text formatting (size & alignment)**, and **advanced text effects (shadows, letter/line spacing, bold/italic/caps/underline)** — built with memory caching and zero-leak protections.
 
 ---
 
@@ -12,11 +12,13 @@ A lightweight Kotlin Android library that provides customizable dialogs for dyna
 
 | Dialog | Description |
 |---|---|
-| **`ImageSelectorDialog`** | Pick from background drawable resources or launch the color picker |
-| **`FontStyleDialog`** | Select and preview custom font resources (`.ttf`/`.otf`/XML) dynamically |
-| **`ColorPickerDialog`** | Material palette color selector with dynamic alpha transparency slider |
+| **`ImageSelectorDialog`** | Pick from background drawables, pick from device gallery photos, or launch the color picker |
+| **`FontStyleDialog`** | Select and preview custom font resources with custom localized script preview text (e.g. Urdu/Arabic) |
+| **`ColorPickerDialog`** | Material palette color selector with live transparency slider across swatches and custom hex code input/copying |
+| **`TextFormatDialog`** | Interactive dialog with text size seekbar (12sp to 42sp) and alignment buttons (`LEFT`, `CENTER`, `RIGHT`) |
+| **`TextEffectsDialog`** | Advanced typography effects dialog (Bold, Italic, Underline, Caps, Drop Shadow blur/colors, Letter Spacing, Line Spacing) |
 | **OOM Safe** | Downsampled `RGB_565` image decoding with `LruCache` for background thumbnails |
-| **Font Caching** | Memory-cached `Typeface` lookup eliminating UI stutter during scrolling |
+| **Smooth Motion** | Native Material 3 spring scale-in and fade-out window animations |
 | **Modern Kotlin DSL** | Clean lambda callbacks alongside traditional interface listeners |
 
 ---
@@ -52,7 +54,7 @@ dependencies {
 
 ## Usage Guide
 
-### 1. Background Image & Color Selector (`ImageSelectorDialog`)
+### 1. Background Image, Gallery & Color Selector (`ImageSelectorDialog`)
 
 ```kotlin
 val backgrounds = listOf(
@@ -63,6 +65,10 @@ val backgrounds = listOf(
 
 ImageSelectorDialog(this).show(
     backgrounds = backgrounds,
+    selectedBackgroundResId = currentBackgroundRes,
+    onPickFromGallery = {
+        galleryLauncher.launch("image/*")
+    },
     onImageSelected = { drawableRes ->
         rootLayout.setBackgroundResource(drawableRes)
     },
@@ -74,29 +80,65 @@ ImageSelectorDialog(this).show(
 
 ---
 
-### 2. Font Style Selector (`FontStyleDialog`)
+### 2. Font Style Selector with Custom Preview Text (`FontStyleDialog`)
 
 ```kotlin
 val fonts = listOf(
     R.font.righteous,
     R.font.salsa,
-    R.font.schoolbell,
-    R.font.sofadi_one
+    R.font.urdu_nastaliq
 )
 
-FontStyleDialog(this).show(fonts = fonts) { fontResId ->
+FontStyleDialog(this).show(
+    fonts = fonts,
+    previewText = "اردو شاعری", // Or "Sample Text"
+    selectedFontResId = currentFontRes
+) { fontResId ->
     textView.typeface = ResourcesCompat.getFont(this, fontResId)
 }
 ```
 
 ---
 
-### 3. Color Picker with Transparency (`ColorPickerDialog`)
+### 3. Color Picker with Live Transparency & Hex Input (`ColorPickerDialog`)
 
 ```kotlin
-ColorPickerDialog(this).show { colorInt ->
+ColorPickerDialog(this).show(
+    customColors = listOf(Color.BLACK, Color.WHITE, Color.RED, Color.BLUE), // Optional custom palette
+    selectedColor = currentColor,                                            // Optional active color
+    initialTransparency = 220                                                // 30 to 255
+) { colorInt ->
     // colorInt includes alpha transparency selected via the slider
     rootLayout.setBackgroundColor(colorInt)
+}
+```
+
+---
+
+### 4. Text Formatting Dialog (`TextFormatDialog`)
+
+```kotlin
+TextFormatDialog(this).show(
+    initialSizeSp = 22f,
+    initialAlignment = TextFormatDialog.TextAlignment.CENTER,
+    previewText = textView.text.toString()
+) { newSizeSp, newAlignment ->
+    textView.textSize = newSizeSp
+    textView.gravity = newAlignment.gravity
+}
+```
+
+---
+
+### 5. Advanced Text Effects Dialog (`TextEffectsDialog`)
+
+```kotlin
+TextEffectsDialog(this).show(
+    initialConfig = currentEffectsConfig,
+    previewText = textView.text.toString()
+) { config ->
+    // Applies styles (Bold/Italic/Underline/Caps), Drop Shadow, Letter Spacing & Line Spacing
+    config.applyTo(textView)
 }
 ```
 

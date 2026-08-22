@@ -52,6 +52,13 @@
             android:layout_marginTop="8dp"
             android:text="4. Text Format Dialog (Size &amp; Alignment)" />
 
+        <Button
+            android:id="@+id/btnEffectsSelector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="5. Text Effects Dialog (Shadow, Spacing, Styles)" />
+
     </LinearLayout>
 
 </RelativeLayout>

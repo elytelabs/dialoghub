@@ -18,8 +18,9 @@ import com.elytelabs.dialoghub.demo.R
 import com.elytelabs.dialoghub.dialogs.ColorPickerDialog
 import com.elytelabs.dialoghub.dialogs.FontStyleDialog
 import com.elytelabs.dialoghub.dialogs.ImageSelectorDialog
+import com.elytelabs.dialoghub.dialogs.TextEffectsDialog
 import com.elytelabs.dialoghub.dialogs.TextFormatDialog
-import androidx.core.graphics.drawable.toDrawable
+import com.elytelabs.dialoghub.models.TextEffectConfig
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private var currentColor: Int? = null
     private var currentTextSize: Float = 20f
     private var currentAlignment: TextFormatDialog.TextAlignment = TextFormatDialog.TextAlignment.CENTER
+    private var currentEffectsConfig = TextEffectConfig()
 
     // System gallery picker launcher
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -39,7 +41,7 @@ class MainActivity : AppCompatActivity() {
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     val bitmap = BitmapFactory.decodeStream(inputStream)
                     if (bitmap != null) {
-                        rootLayout.background = bitmap.toDrawable(resources)
+                        rootLayout.background = BitmapDrawable(resources, bitmap)
                         currentBackgroundRes = null
                         Toast.makeText(this, "Gallery photo applied as background!", Toast.LENGTH_SHORT).show()
                     }
@@ -83,8 +85,9 @@ class MainActivity : AppCompatActivity() {
         val btnFontSelector: Button = findViewById(R.id.btnFontSelector)
         val btnColorSelector: Button = findViewById(R.id.btnColorSelector)
         val btnFormatSelector: Button = findViewById(R.id.btnFormatSelector)
+        val btnEffectsSelector: Button = findViewById(R.id.btnEffectsSelector)
 
-        // 1. Background Image / Gallery / Color Selector (Gallery first, then Color, then Images)
+        // 1. Background Image / Gallery / Color Selector
         btnImageSelector.setOnClickListener {
             ImageSelectorDialog(this).show(
                 backgrounds = backgrounds,
@@ -112,6 +115,7 @@ class MainActivity : AppCompatActivity() {
             ) { fontResId ->
                 currentFontRes = fontResId
                 textView.typeface = ResourcesCompat.getFont(this, fontResId)
+                currentEffectsConfig.applyTo(textView)
             }
         }
 
@@ -134,6 +138,17 @@ class MainActivity : AppCompatActivity() {
                 currentAlignment = alignment
                 textView.textSize = size
                 textView.gravity = alignment.gravity
+            }
+        }
+
+        // 5. Text Effects Dialog (Styles, Drop Shadow, Letter Spacing, Line Spacing)
+        btnEffectsSelector.setOnClickListener {
+            TextEffectsDialog(this).show(
+                initialConfig = currentEffectsConfig,
+                previewText = textView.text.toString()
+            ) { config ->
+                currentEffectsConfig = config
+                currentEffectsConfig.applyTo(textView)
             }
         }
     }
