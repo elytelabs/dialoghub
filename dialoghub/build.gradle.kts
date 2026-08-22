@@ -1,16 +1,15 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 
     `maven-publish`
 }
 
 android {
     namespace = "com.elytelabs.dialoghub"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 25
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -26,11 +25,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "17"
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 }
 
@@ -51,26 +53,25 @@ dependencies {
 }
 
 // Maven publishing configuration
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-            groupId = "com.elytelabs.dialoghub"
-            artifactId = "dialoghub"
-            version = "1.1.4"
-
-            afterEvaluate {
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("release") {
+                groupId = "com.elytelabs.dialoghub"
+                artifactId = "dialoghub"
+                version = "1.2.0"
                 from(components["release"])
-            }
 
-            pom {
-                name.set("DialogHub")
-                description.set("Dialogs Library")
-                url.set("https://github.com/elytelabs/dialoghub")
+                pom {
+                    name.set("DialogHub")
+                    description.set("Dialogs Library")
+                    url.set("https://github.com/elytelabs/dialoghub")
 
-                licenses {
-                    license {
-                        name.set("Apache 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    licenses {
+                        license {
+                            name.set("Apache 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
                     }
                 }
             }

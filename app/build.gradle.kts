@@ -1,16 +1,15 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
 }
 
 android {
-    namespace = "com.elytelabs.dialoghub"
-    compileSdk = 35
+    namespace = "com.elytelabs.dialoghub.demo"
+    compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.elytelabs.dialoghub"
-        minSdk = 24
-        targetSdk = 35
+        applicationId = "com.elytelabs.dialoghub.demo"
+        minSdk = 25
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -27,11 +26,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 

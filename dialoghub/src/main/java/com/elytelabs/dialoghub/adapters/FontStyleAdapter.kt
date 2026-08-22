@@ -1,6 +1,8 @@
 package com.elytelabs.dialoghub.adapters
 
 import android.content.Context
+import android.graphics.Typeface
+import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +16,7 @@ class FontStyleAdapter(private val context: Context)
 
     private var fonts: List<Int> = emptyList()
     private var onFontClickListener: ((Int) -> Unit)? = null
+    private val typefaceCache = LruCache<Int, Typeface>(20)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view =
@@ -22,10 +25,23 @@ class FontStyleAdapter(private val context: Context)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val typeface = fonts[position]
-        holder.textView.typeface = ResourcesCompat.getFont(context, typeface)
+        val fontRes = fonts.getOrNull(position) ?: return
+
+        var typeface = typefaceCache.get(fontRes)
+        if (typeface == null) {
+            try {
+                typeface = ResourcesCompat.getFont(context, fontRes)
+                if (typeface != null) {
+                    typefaceCache.put(fontRes, typeface)
+                }
+            } catch (e: Exception) {
+                typeface = Typeface.DEFAULT
+            }
+        }
+
+        holder.textView.typeface = typeface ?: Typeface.DEFAULT
         holder.itemView.setOnClickListener {
-            onFontClickListener?.invoke(typeface)
+            onFontClickListener?.invoke(fontRes)
         }
     }
 
@@ -35,6 +51,7 @@ class FontStyleAdapter(private val context: Context)
 
     fun setFonts(font: List<Int>) {
         this.fonts = font
+        notifyDataSetChanged()
     }
 
     fun setOnFontClickListener(listener: (Int) -> Unit) {
