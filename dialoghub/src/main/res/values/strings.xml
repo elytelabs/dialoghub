@@ -4,8 +4,14 @@
     <string name="choose_color">Choose Color</string>
     <string name="choose_background">Choose Background</string>
     <string name="sample_text">Sample Text</string>
-
     <string name="transparency">Transparency</string>
     <string name="back_button">Back Button</string>
-
+    <string name="format_text">Text Format</string>
+    <string name="text_size">Text Size</string>
+    <string name="text_alignment">Alignment</string>
+    <string name="align_left">Left</string>
+    <string name="align_center">Center</string>
+    <string name="align_right">Right</string>
+    <string name="pick_from_gallery">Gallery</string>
+    <string name="color_wheel_title">Color</string>
 </resources>

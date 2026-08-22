@@ -4,16 +4,19 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
+import com.elytelabs.toolbox.ColorGenerator
 
 class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
 
     private var colors: List<Int> = emptyList()
     private var transparency: Int = 255
+    private var selectedColor: Int? = null
     private var onItemClickListener: ((Int) -> Unit)? = null
 
-    override fun onCreateViewHolder(parent: ViewGroup,viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_color, parent, false)
         return ViewHolder(view)
@@ -21,10 +24,38 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val color = colors[position]
-        val transparentColor = Color.argb(transparency, Color.red(color), Color.green(color), Color.blue(color))
+        // Apply live alpha transparency to every swatch in the palette
+        val transparentColor = Color.argb(
+            transparency,
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        )
         holder.colorView.setBackgroundColor(transparentColor)
+
+        val isSelected = if (selectedColor != null) {
+            val selR = Color.red(selectedColor!!)
+            val selG = Color.green(selectedColor!!)
+            val selB = Color.blue(selectedColor!!)
+            selR == Color.red(color) && selG == Color.green(color) && selB == Color.blue(color)
+        } else {
+            false
+        }
+
+        if (isSelected) {
+            holder.selectedCheck.visibility = View.VISIBLE
+            val checkColor = if (ColorGenerator.isDarkColor(color)) Color.WHITE else Color.BLACK
+            holder.selectedCheck.setColorFilter(checkColor)
+            holder.selectedOverlay.visibility = View.VISIBLE
+        } else {
+            holder.selectedCheck.visibility = View.GONE
+            holder.selectedOverlay.visibility = View.GONE
+        }
+
         holder.itemView.setOnClickListener {
-            onItemClickListener?.invoke(transparentColor)
+            selectedColor = color
+            notifyItemRangeChanged(0, itemCount)
+            onItemClickListener?.invoke(color)
         }
     }
 
@@ -41,11 +72,22 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         this.transparency = transparency
     }
 
+    fun setSelectedColor(color: Int?) {
+        this.selectedColor = color
+        notifyDataSetChanged()
+    }
+
+    fun getSelectedColor(): Int? {
+        return selectedColor
+    }
+
     fun setOnItemClickListener(listener: (Int) -> Unit) {
         this.onItemClickListener = listener
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val colorView: View = itemView.findViewById(R.id.colorView)
+        val selectedCheck: ImageView = itemView.findViewById(R.id.selectedCheck)
+        val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
     }
 }

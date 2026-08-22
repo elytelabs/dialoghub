@@ -15,6 +15,8 @@ class FontStyleAdapter(private val context: Context)
     : RecyclerView.Adapter<FontStyleAdapter.ViewHolder>() {
 
     private var fonts: List<Int> = emptyList()
+    private var previewText: String? = null
+    private var selectedFontResId: Int? = null
     private var onFontClickListener: ((Int) -> Unit)? = null
     private val typefaceCache = LruCache<Int, Typeface>(20)
 
@@ -40,7 +42,20 @@ class FontStyleAdapter(private val context: Context)
         }
 
         holder.textView.typeface = typeface ?: Typeface.DEFAULT
+
+        if (!previewText.isNullOrEmpty()) {
+            holder.textView.text = previewText
+        } else {
+            holder.textView.setText(R.string.sample_text)
+        }
+
+        // Selection highlight
+        val isSelected = (selectedFontResId != null && selectedFontResId == fontRes)
+        holder.selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
+
         holder.itemView.setOnClickListener {
+            selectedFontResId = fontRes
+            notifyItemRangeChanged(0, itemCount)
             onFontClickListener?.invoke(fontRes)
         }
     }
@@ -54,11 +69,22 @@ class FontStyleAdapter(private val context: Context)
         notifyDataSetChanged()
     }
 
+    fun setPreviewText(text: String?) {
+        this.previewText = text
+        notifyDataSetChanged()
+    }
+
+    fun setSelectedFont(fontResId: Int?) {
+        this.selectedFontResId = fontResId
+        notifyDataSetChanged()
+    }
+
     fun setOnFontClickListener(listener: (Int) -> Unit) {
         this.onFontClickListener = listener
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.textView)
+        val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
     }
 }

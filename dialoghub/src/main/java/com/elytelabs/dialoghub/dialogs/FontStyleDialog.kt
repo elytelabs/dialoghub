@@ -6,19 +6,20 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
-import android.widget.ImageView
+import android.widget.ImageButton
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.FontStyleAdapter
-import androidx.core.graphics.drawable.toDrawable
 
 /**
- * Dialog for selecting fonts from app font resources.
+ * Dialog for selecting fonts from app font resources with custom script preview text.
  */
 class FontStyleDialog(private val context: Context) {
 
     private var fonts: List<Int> = emptyList()
+    private var previewText: String? = null
+    private var selectedFontResId: Int? = null
     private var fontPickerListener: FontPickerListener? = null
 
     /**
@@ -43,14 +44,41 @@ class FontStyleDialog(private val context: Context) {
     }
 
     /**
+     * Sets custom preview sample text (e.g., Urdu/Arabic/Hindi text for localized apps).
+     */
+    fun setPreviewText(text: String?) {
+        this.previewText = text
+    }
+
+    /**
+     * Sets the initially selected font resource ID for highlighting.
+     */
+    fun setSelectedFont(fontResId: Int?) {
+        this.selectedFontResId = fontResId
+    }
+
+    /**
      * Convenience method to show the font style dialog using a Kotlin lambda callback.
      *
-     * @param fonts Optional list of font resource IDs (if not previously set).
+     * @param fonts Optional list of font resource IDs.
+     * @param previewText Optional custom preview text (e.g., "اردو شاعری" or "Custom Preview").
+     * @param selectedFontResId Optional resource ID of the currently selected font.
      * @param onFontSelected Lambda invoked with the selected font resource ID.
      */
-    fun show(fonts: List<Int>? = null, onFontSelected: (fontResId: Int) -> Unit) {
+    fun show(
+        fonts: List<Int>? = null,
+        previewText: String? = null,
+        selectedFontResId: Int? = null,
+        onFontSelected: (fontResId: Int) -> Unit
+    ) {
         if (fonts != null) {
             this.fonts = fonts
+        }
+        if (previewText != null) {
+            this.previewText = previewText
+        }
+        if (selectedFontResId != null) {
+            this.selectedFontResId = selectedFontResId
         }
         this.fontPickerListener = FontPickerListener { font -> onFontSelected(font) }
         showFontSelectionDialog()
@@ -66,7 +94,8 @@ class FontStyleDialog(private val context: Context) {
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_font_selector, null)
         val dialog = Dialog(context)
-        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         dialog.setContentView(dialogView)
 
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.fontRecyclerView)
@@ -74,7 +103,7 @@ class FontStyleDialog(private val context: Context) {
         val adapter = FontStyleAdapter(context)
         recyclerView.adapter = adapter
 
-        dialogView.findViewById<ImageView>(R.id.backButton).setOnClickListener {
+        dialogView.findViewById<ImageButton>(R.id.backButton).setOnClickListener {
             dialog.dismiss()
         }
 
@@ -84,6 +113,8 @@ class FontStyleDialog(private val context: Context) {
         }
 
         adapter.setFonts(fonts)
+        adapter.setPreviewText(previewText)
+        adapter.setSelectedFont(selectedFontResId)
 
         dialog.show()
     }

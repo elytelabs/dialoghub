@@ -1,10 +1,15 @@
 package com.elytelabs.dialoghub
 
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.RelativeLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
@@ -13,14 +18,47 @@ import com.elytelabs.dialoghub.demo.R
 import com.elytelabs.dialoghub.dialogs.ColorPickerDialog
 import com.elytelabs.dialoghub.dialogs.FontStyleDialog
 import com.elytelabs.dialoghub.dialogs.ImageSelectorDialog
+import com.elytelabs.dialoghub.dialogs.TextFormatDialog
+import androidx.core.graphics.drawable.toDrawable
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var rootLayout: RelativeLayout
+    private lateinit var textView: TextView
+
+    private var currentBackgroundRes: Int? = null
+    private var currentFontRes: Int? = null
+    private var currentColor: Int? = null
+    private var currentTextSize: Float = 20f
+    private var currentAlignment: TextFormatDialog.TextAlignment = TextFormatDialog.TextAlignment.CENTER
+
+    // System gallery picker launcher
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    if (bitmap != null) {
+                        rootLayout.background = bitmap.toDrawable(resources)
+                        currentBackgroundRes = null
+                        Toast.makeText(this, "Gallery photo applied as background!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Failed to load image from gallery", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootLayout)) { v, insets ->
+        rootLayout = findViewById(R.id.rootLayout)
+        textView = findViewById(R.id.textView)
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -41,36 +79,61 @@ class MainActivity : AppCompatActivity() {
             R.font.sofadi_one
         )
 
-        val rootLayout: RelativeLayout = findViewById(R.id.rootLayout)
-        val textView: TextView = findViewById(R.id.textView)
         val btnImageSelector: Button = findViewById(R.id.btnImageSelector)
         val btnFontSelector: Button = findViewById(R.id.btnFontSelector)
         val btnColorSelector: Button = findViewById(R.id.btnColorSelector)
+        val btnFormatSelector: Button = findViewById(R.id.btnFormatSelector)
 
-        // 1. Background Image / Color Selector
+        // 1. Background Image / Gallery / Color Selector (Gallery first, then Color, then Images)
         btnImageSelector.setOnClickListener {
             ImageSelectorDialog(this).show(
                 backgrounds = backgrounds,
+                selectedBackgroundResId = currentBackgroundRes,
+                onPickFromGallery = {
+                    galleryLauncher.launch("image/*")
+                },
                 onImageSelected = { imageResource ->
+                    currentBackgroundRes = imageResource
                     rootLayout.setBackgroundResource(imageResource)
                 },
                 onColorSelected = { color ->
+                    currentColor = color
                     rootLayout.setBackgroundColor(color)
                 }
             )
         }
 
-        // 2. Font Style Selector
+        // 2. Font Style Selector with Custom Preview Text
         btnFontSelector.setOnClickListener {
-            FontStyleDialog(this).show(fonts = fonts) { fontResId ->
+            FontStyleDialog(this).show(
+                fonts = fonts,
+                previewText = "Sample / اردو",
+                selectedFontResId = currentFontRes
+            ) { fontResId ->
+                currentFontRes = fontResId
                 textView.typeface = ResourcesCompat.getFont(this, fontResId)
             }
         }
 
-        // 3. Color Picker with Transparency
+        // 3. Color Picker with Transparency & Live Preview
         btnColorSelector.setOnClickListener {
-            ColorPickerDialog(this).show { color ->
+            ColorPickerDialog(this).show(selectedColor = currentColor) { color ->
+                currentColor = color
                 rootLayout.setBackgroundColor(color)
+            }
+        }
+
+        // 4. Text Format Dialog (Live Preview, Text Size & Alignment)
+        btnFormatSelector.setOnClickListener {
+            TextFormatDialog(this).show(
+                initialSizeSp = currentTextSize,
+                initialAlignment = currentAlignment,
+                previewText = textView.text.toString()
+            ) { size, alignment ->
+                currentTextSize = size
+                currentAlignment = alignment
+                textView.textSize = size
+                textView.gravity = alignment.gravity
             }
         }
     }
