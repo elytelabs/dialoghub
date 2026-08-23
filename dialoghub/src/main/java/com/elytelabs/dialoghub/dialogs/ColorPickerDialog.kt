@@ -6,7 +6,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -15,10 +14,13 @@ import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ColorAdapter
+import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.elytelabs.toolbox.ColorGenerator
 
 /**
@@ -98,9 +100,10 @@ class ColorPickerDialog(private val context: Context) {
             return
         }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_color_picker, null)
-        val dialog = Dialog(context)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val themedContext = DialogThemeHelper.getThemedContext(context)
+        val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_color_picker, null)
+        val dialog = Dialog(themedContext)
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         dialog.setContentView(dialogView)
 
@@ -112,7 +115,7 @@ class ColorPickerDialog(private val context: Context) {
         val btnBack = dialogView.findViewById<ImageButton>(R.id.colorBackButton)
         val btnApply = dialogView.findViewById<Button>(R.id.btnApplyColor)
 
-        recyclerView.layoutManager = GridLayoutManager(context, 5)
+        recyclerView.layoutManager = GridLayoutManager(themedContext, 5)
         val adapter = ColorAdapter()
         recyclerView.adapter = adapter
 
@@ -198,9 +201,10 @@ class ColorPickerDialog(private val context: Context) {
     }
 
     private fun showHexInputDialog(initialColor: Int, onHexApplied: (Int) -> Unit) {
-        val hexView = LayoutInflater.from(context).inflate(R.layout.dialog_hex_input, null)
-        val hexDialog = Dialog(context)
-        hexDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val themedContext = DialogThemeHelper.getThemedContext(context)
+        val hexView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_hex_input, null)
+        val hexDialog = Dialog(themedContext)
+        hexDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         hexDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         hexDialog.setContentView(hexView)
 
@@ -223,7 +227,7 @@ class ColorPickerDialog(private val context: Context) {
             val rawInput = etHex.text.toString().trim()
             val formatted = if (!rawInput.startsWith("#")) "#$rawInput" else rawInput
             try {
-                val parsedColor = Color.parseColor(formatted)
+                val parsedColor = formatted.toColorInt()
                 onHexApplied(parsedColor)
                 hexDialog.dismiss()
             } catch (e: Exception) {

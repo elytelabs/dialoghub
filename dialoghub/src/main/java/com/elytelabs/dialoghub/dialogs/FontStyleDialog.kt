@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.FontStyleAdapter
+import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Dialog for selecting fonts from app font resources with custom script preview text.
@@ -92,15 +94,16 @@ class FontStyleDialog(private val context: Context) {
             return
         }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_font_selector, null)
-        val dialog = Dialog(context)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val themedContext = DialogThemeHelper.getThemedContext(context)
+        val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_font_selector, null)
+        val dialog = Dialog(themedContext)
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         dialog.setContentView(dialogView)
 
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.fontRecyclerView)
-        recyclerView.layoutManager = GridLayoutManager(context, 2)
-        val adapter = FontStyleAdapter(context)
+        recyclerView.layoutManager = GridLayoutManager(themedContext, 2)
+        val adapter = FontStyleAdapter(themedContext)
         recyclerView.adapter = adapter
 
         dialogView.findViewById<ImageButton>(R.id.backButton).setOnClickListener {

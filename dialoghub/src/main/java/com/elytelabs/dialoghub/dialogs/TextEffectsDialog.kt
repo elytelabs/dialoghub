@@ -4,18 +4,18 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import com.elytelabs.dialoghub.R
-import com.elytelabs.dialoghub.models.TextEffectConfig
-import com.google.android.material.button.MaterialButtonToggleGroup
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
+import com.elytelabs.dialoghub.R
+import com.elytelabs.dialoghub.models.TextEffectConfig
+import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import com.google.android.material.button.MaterialButtonToggleGroup
 
 /**
  * Dialog for configuring advanced text effects (styles, drop shadow, letter spacing, line spacing)
@@ -75,8 +75,9 @@ class TextEffectsDialog(private val context: Context) {
             return
         }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_text_effects, null)
-        val dialog = Dialog(context)
+        val themedContext = DialogThemeHelper.getThemedContext(context)
+        val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_text_effects, null)
+        val dialog = Dialog(themedContext)
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         dialog.setContentView(dialogView)

@@ -1,64 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/textView"
+    <!-- Top Preview Box -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/previewCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="20dp"
-        android:text="Customize this text and background using DialogHub!"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="#F8F9FA"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp">
 
-    <LinearLayout
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:minHeight="100dp"
+            android:padding="20dp"
+            android:text="Customize this text and background using DialogHub!"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/textView"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_below="@id/previewCard"
+        android:fillViewport="true">
 
-        <Button
-            android:id="@+id/btnImageSelector"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1. Image &amp; Gallery Selector" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <Button
-            android:id="@+id/btnFontSelector"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="2. Font Selector (Urdu / Custom Preview)" />
+            <!-- Theme Mode Switcher Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp">
 
-        <Button
-            android:id="@+id/btnColorSelector"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="3. Color Picker with Transparency" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
 
-        <Button
-            android:id="@+id/btnFormatSelector"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="4. Text Format Dialog (Size &amp; Alignment)" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Test Host App Theme Context:"
+                        android:textColor="#1F2937"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnEffectsSelector"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="5. Text Effects Dialog (Shadow, Spacing, Styles)" />
+                    <RadioGroup
+                        android:id="@+id/rgThemeMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical">
 
-    </LinearLayout>
+                        <RadioButton
+                            android:id="@+id/rbMaterial"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="Material Theme Context (Inherits Brand Colors)"
+                            android:textSize="13sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbAppCompat"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Legacy AppCompat Context (Auto-wrapped Fallback)"
+                            android:textSize="13sp" />
+                    </RadioGroup>
+
+                    <TextView
+                        android:id="@+id/tvThemeStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Using: Material3 Theme (Direct inheritance)"
+                        android:textColor="#4CAF50"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Dialog Buttons -->
+            <Button
+                android:id="@+id/btnImageSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="1. Image &amp; Gallery Selector"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnFontSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="2. Font Selector (Urdu / Custom Preview)"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnColorSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="3. Color Picker with Transparency"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnFormatSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="4. Text Format Dialog (Size &amp; Alignment)"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnEffectsSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="5. Text Effects Dialog (Shadow, Spacing, Styles)"
+                android:textAllCaps="false" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </RelativeLayout>

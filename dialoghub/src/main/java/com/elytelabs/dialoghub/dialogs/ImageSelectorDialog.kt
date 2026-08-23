@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ImageAdapter
+import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Dialog for selecting background drawable images, custom photos from gallery, or custom colors.
@@ -107,14 +109,15 @@ class ImageSelectorDialog(private val context: Context) {
             return
         }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_image_selector, null)
-        val dialog = Dialog(context)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val themedContext = DialogThemeHelper.getThemedContext(context)
+        val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_image_selector, null)
+        val dialog = Dialog(themedContext)
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         dialog.setContentView(dialogView)
 
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.imageRecyclerView)
-        recyclerView.layoutManager = GridLayoutManager(context, 3)
+        recyclerView.layoutManager = GridLayoutManager(themedContext, 3)
         val adapter = ImageAdapter()
         recyclerView.adapter = adapter
 

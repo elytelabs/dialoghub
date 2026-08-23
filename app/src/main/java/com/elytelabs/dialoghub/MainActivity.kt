@@ -1,17 +1,20 @@
 package com.elytelabs.dialoghub
 
+import android.content.Context
 import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.RadioGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.elytelabs.dialoghub.demo.R
@@ -26,6 +29,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var rootLayout: RelativeLayout
     private lateinit var textView: TextView
+    private lateinit var rgThemeMode: RadioGroup
+    private lateinit var tvThemeStatus: TextView
 
     private var currentBackgroundRes: Int? = null
     private var currentFontRes: Int? = null
@@ -41,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     val bitmap = BitmapFactory.decodeStream(inputStream)
                     if (bitmap != null) {
-                        rootLayout.background = BitmapDrawable(resources, bitmap)
+                        rootLayout.background = bitmap.toDrawable(resources)
                         currentBackgroundRes = null
                         Toast.makeText(this, "Gallery photo applied as background!", Toast.LENGTH_SHORT).show()
                     }
@@ -52,6 +57,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Resolves the active context to demonstrate DialogHub's dual support:
+     * - Material Theme Context: Inherits host app brand colors and Material3 styling directly.
+     * - Legacy AppCompat Context: Simulates an AppCompat host activity; DialogThemeHelper auto-wraps it safely.
+     */
+    private fun getActiveContext(): Context {
+        return if (rgThemeMode.checkedRadioButtonId == R.id.rbAppCompat) {
+            ContextThemeWrapper(this, R.style.Theme_DialogHub_AppCompatTest)
+        } else {
+            this
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -59,11 +77,23 @@ class MainActivity : AppCompatActivity() {
 
         rootLayout = findViewById(R.id.rootLayout)
         textView = findViewById(R.id.textView)
+        rgThemeMode = findViewById(R.id.rgThemeMode)
+        tvThemeStatus = findViewById(R.id.tvThemeStatus)
 
         ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        rgThemeMode.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId == R.id.rbAppCompat) {
+                tvThemeStatus.text = "Using: Legacy AppCompat Context (Auto-wrapped by DialogThemeHelper without crashing)"
+                tvThemeStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
+            } else {
+                tvThemeStatus.text = "Using: Material3 Theme (Direct inheritance of host brand colors)"
+                tvThemeStatus.setTextColor(getColor(android.R.color.holo_green_dark))
+            }
         }
 
         val backgrounds = listOf(
@@ -89,7 +119,7 @@ class MainActivity : AppCompatActivity() {
 
         // 1. Background Image / Gallery / Color Selector
         btnImageSelector.setOnClickListener {
-            ImageSelectorDialog(this).show(
+            ImageSelectorDialog(getActiveContext()).show(
                 backgrounds = backgrounds,
                 selectedBackgroundResId = currentBackgroundRes,
                 onPickFromGallery = {
@@ -108,7 +138,7 @@ class MainActivity : AppCompatActivity() {
 
         // 2. Font Style Selector with Custom Preview Text
         btnFontSelector.setOnClickListener {
-            FontStyleDialog(this).show(
+            FontStyleDialog(getActiveContext()).show(
                 fonts = fonts,
                 previewText = "Sample / اردو",
                 selectedFontResId = currentFontRes
@@ -121,7 +151,7 @@ class MainActivity : AppCompatActivity() {
 
         // 3. Color Picker with Transparency & Live Preview
         btnColorSelector.setOnClickListener {
-            ColorPickerDialog(this).show(selectedColor = currentColor) { color ->
+            ColorPickerDialog(getActiveContext()).show(selectedColor = currentColor) { color ->
                 currentColor = color
                 rootLayout.setBackgroundColor(color)
             }
@@ -129,7 +159,7 @@ class MainActivity : AppCompatActivity() {
 
         // 4. Text Format Dialog (Live Preview, Text Size & Alignment)
         btnFormatSelector.setOnClickListener {
-            TextFormatDialog(this).show(
+            TextFormatDialog(getActiveContext()).show(
                 initialSizeSp = currentTextSize,
                 initialAlignment = currentAlignment,
                 previewText = textView.text.toString()
@@ -143,7 +173,7 @@ class MainActivity : AppCompatActivity() {
 
         // 5. Text Effects Dialog (Styles, Drop Shadow, Letter Spacing, Line Spacing)
         btnEffectsSelector.setOnClickListener {
-            TextEffectsDialog(this).show(
+            TextEffectsDialog(getActiveContext()).show(
                 initialConfig = currentEffectsConfig,
                 previewText = textView.text.toString()
             ) { config ->

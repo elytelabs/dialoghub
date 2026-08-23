@@ -17,6 +17,7 @@ A lightweight Kotlin Android library that provides customizable dialogs for dyna
 | **`ColorPickerDialog`** | Material palette color selector with live transparency slider across swatches and custom hex code input/copying |
 | **`TextFormatDialog`** | Interactive dialog with text size seekbar (12sp to 42sp) and alignment buttons (`LEFT`, `CENTER`, `RIGHT`) |
 | **`TextEffectsDialog`** | Advanced typography effects dialog (Bold, Italic, Underline, Caps, Drop Shadow blur/colors, Letter Spacing, Line Spacing) |
+| **Universal Theming** | Fully compatible with both `Theme.Material3` / `Theme.MaterialComponents` and legacy `Theme.AppCompat` activities |
 | **OOM Safe** | Downsampled `RGB_565` image decoding with `LruCache` for background thumbnails |
 | **Smooth Motion** | Native Material 3 spring scale-in and fade-out window animations |
 | **Modern Kotlin DSL** | Clean lambda callbacks alongside traditional interface listeners |
@@ -46,7 +47,7 @@ In your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.elytelabs:dialoghub:1.2.0")
+    implementation("com.github.elytelabs:dialoghub:1.2.1")
 }
 ```
 
@@ -141,6 +142,15 @@ TextEffectsDialog(this).show(
     config.applyTo(textView)
 }
 ```
+
+---
+
+## Changelog
+
+### v1.2.1
+- **Universal Theme Compatibility**: Added `DialogThemeHelper` to automatically detect host themes and safely wrap legacy `Theme.AppCompat` contexts without crashes.
+- **Brand Color Preservation**: Dialogs dynamically inherit host app's `colorPrimary` and styling when running under `Theme.MaterialComponents` / `Theme.Material3`.
+- **Demo Enhancement**: Updated demo sample activity to support live testing with both Material and AppCompat contexts.
 
 ---
 

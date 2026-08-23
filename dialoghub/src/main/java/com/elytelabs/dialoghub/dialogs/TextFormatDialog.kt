@@ -11,7 +11,9 @@ import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import com.elytelabs.dialoghub.R
+import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.button.MaterialButtonToggleGroup
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Dialog for adjusting text formatting (size and gravity alignment) with live interactive preview.
@@ -89,9 +91,10 @@ class TextFormatDialog(private val context: Context) {
             return
         }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_text_format, null)
-        val dialog = Dialog(context)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val themedContext = DialogThemeHelper.getThemedContext(context)
+        val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_text_format, null)
+        val dialog = Dialog(themedContext)
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
         dialog.setContentView(dialogView)
 
