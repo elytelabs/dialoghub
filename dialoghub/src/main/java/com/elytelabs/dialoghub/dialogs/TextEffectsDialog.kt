@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -13,19 +14,25 @@ import androidx.cardview.widget.CardView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import com.elytelabs.dialoghub.R
+import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.models.TextEffectConfig
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButtonToggleGroup
 
 /**
  * Dialog for configuring advanced text effects (styles, drop shadow, letter spacing, line spacing)
  * with live real-time preview.
+ * Supports standard Dialog and BottomSheet presentation styles, fluent Builder, and Kotlin DSL.
  */
 class TextEffectsDialog(private val context: Context) {
 
     private var currentConfig = TextEffectConfig()
     private var previewSampleText: String? = null
+    private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
     private var effectsListener: TextEffectsListener? = null
+    private var dismissListener: (() -> Unit)? = null
 
     /**
      * Traditional interface listener for Java callers.
@@ -38,6 +45,10 @@ class TextEffectsDialog(private val context: Context) {
         this.effectsListener = listener
     }
 
+    fun setOnDismissListener(listener: () -> Unit) {
+        this.dismissListener = listener
+    }
+
     /**
      * Sets custom sample text to display in the live preview box.
      */
@@ -46,18 +57,35 @@ class TextEffectsDialog(private val context: Context) {
     }
 
     /**
+     * Sets the initial text effect configuration.
+     */
+    fun setConfig(config: TextEffectConfig) {
+        this.currentConfig = config
+    }
+
+    /**
+     * Configures presentation mode (Standard Dialog or BottomSheet).
+     */
+    fun setPresentationStyle(style: PresentationStyle) {
+        this.presentationStyle = style
+    }
+
+    /**
      * Shows the text effects dialog using Kotlin lambda callbacks.
      *
      * @param initialConfig Current text effects configuration.
      * @param previewText Optional custom sample text for the live preview box.
+     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
      * @param onEffectsApplied Callback invoked when effects are updated/applied.
      */
     fun show(
         initialConfig: TextEffectConfig = TextEffectConfig(),
         previewText: String? = null,
+        presentationStyle: PresentationStyle = this.presentationStyle,
         onEffectsApplied: (config: TextEffectConfig) -> Unit
     ) {
         this.currentConfig = initialConfig
+        this.presentationStyle = presentationStyle
         if (previewText != null) {
             this.previewSampleText = previewText
         }
@@ -77,12 +105,34 @@ class TextEffectsDialog(private val context: Context) {
 
         val themedContext = DialogThemeHelper.getThemedContext(context)
         val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_text_effects, null)
-        val dialog = Dialog(themedContext)
-        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-        dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
-        dialog.setContentView(dialogView)
 
-        val btnBack = dialogView.findViewById<ImageButton>(R.id.btnBack)
+        val dialog: Dialog = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) {
+            val bottomSheet = BottomSheetDialog(themedContext)
+            bottomSheet.setContentView(dialogView)
+            dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
+            bottomSheet.behavior.apply {
+                isFitToContents = true
+                skipCollapsed = true
+                state = BottomSheetBehavior.STATE_EXPANDED
+            }
+            bottomSheet
+        } else {
+            val standardDialog = Dialog(themedContext)
+            standardDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+            standardDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
+            standardDialog.setContentView(dialogView)
+            dialogView.setBackgroundResource(R.drawable.rounded_background)
+            standardDialog
+        }
+
+        dialog.setOnDismissListener {
+            dismissListener?.invoke()
+        }
+
+        val dragHandle = dialogView.findViewById<View>(R.id.dragHandle)
+        dragHandle?.visibility = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) View.VISIBLE else View.GONE
+
+        val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
         val tvLivePreview = dialogView.findViewById<TextView>(R.id.tvLivePreview)
         val toggleGroup = dialogView.findViewById<MaterialButtonToggleGroup>(R.id.toggleGroupStyles)
         val seekBarShadow = dialogView.findViewById<SeekBar>(R.id.seekBarShadow)
@@ -104,7 +154,7 @@ class TextEffectsDialog(private val context: Context) {
             tvLivePreview.text = previewSampleText
         }
 
-        btnBack.setOnClickListener {
+        btnClose?.setOnClickListener {
             dialog.dismiss()
         }
 
@@ -207,5 +257,51 @@ class TextEffectsDialog(private val context: Context) {
         }
 
         dialog.show()
+
+        if (presentationStyle == PresentationStyle.DIALOG) {
+            dialog.window?.setLayout(
+                (themedContext.resources.displayMetrics.widthPixels * 0.92f).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+    }
+
+    /**
+     * Fluent Builder for [TextEffectsDialog].
+     */
+    class Builder(private val context: Context) {
+        private var config: TextEffectConfig = TextEffectConfig()
+        private var previewSampleText: String? = null
+        private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+        private var listener: TextEffectsListener? = null
+        private var dismissListener: (() -> Unit)? = null
+
+        fun setConfig(config: TextEffectConfig) = apply { this.config = config }
+        fun setPreviewText(text: String?) = apply { this.previewSampleText = text }
+        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+        fun setOnEffectsChanged(listener: (TextEffectConfig) -> Unit) = apply {
+            this.listener = TextEffectsListener { cfg -> listener(cfg) }
+        }
+        fun setOnEffectsChanged(listener: TextEffectsListener) = apply { this.listener = listener }
+        fun setOnDismiss(listener: () -> Unit) = apply { this.dismissListener = listener }
+
+        fun build(): TextEffectsDialog {
+            val dialog = TextEffectsDialog(context)
+            dialog.setConfig(config)
+            dialog.setPreviewText(previewSampleText)
+            dialog.setPresentationStyle(presentationStyle)
+            listener?.let { dialog.setTextEffectsListener(it) }
+            dismissListener?.let { dialog.setOnDismissListener(it) }
+            return dialog
+        }
+
+        fun show(onEffectsChanged: ((TextEffectConfig) -> Unit)? = null): TextEffectsDialog {
+            val dialog = build()
+            if (onEffectsChanged != null) {
+                dialog.setTextEffectsListener { cfg -> onEffectsChanged(cfg) }
+            }
+            dialog.showTextEffectsDialog()
+            return dialog
+        }
     }
 }

@@ -11,22 +11,23 @@
     android:paddingEnd="16dp"
     android:paddingBottom="20dp">
 
-    <!-- Header with Back Button and Live Preview Swatch -->
+    <!-- Top Material Drag Handle Pill -->
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Header with Title, Live Preview Swatch, and Close Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingTop="14dp"
+        android:paddingTop="8dp"
         android:paddingBottom="10dp">
-
-        <ImageButton
-            android:id="@+id/colorBackButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?actionBarItemBackground"
-            android:contentDescription="@string/back_button"
-            android:paddingEnd="12dp"
-            android:src="@drawable/arrow_back" />
 
         <TextView
             android:layout_width="0dp"
@@ -42,6 +43,7 @@
         <androidx.cardview.widget.CardView
             android:layout_width="wrap_content"
             android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
             app:cardBackgroundColor="#F0F0F0"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp">
@@ -79,6 +81,14 @@
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?actionBarItemBackground"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_close" />
     </LinearLayout>
 
     <!-- Colors Grid -->
@@ -135,8 +145,8 @@
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
         android:progress="225"
-        android:progressTint="@color/yellow"
-        android:thumbTint="@color/yellow" />
+        android:progressTint="?attr/colorPrimary"
+        android:thumbTint="?attr/colorPrimary" />
 
     <!-- Modern Apply Button -->
     <com.google.android.material.button.MaterialButton

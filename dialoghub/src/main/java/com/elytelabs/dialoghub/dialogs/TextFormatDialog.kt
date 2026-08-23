@@ -4,19 +4,23 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
-import com.elytelabs.dialoghub.R
-import com.elytelabs.dialoghub.utils.DialogThemeHelper
-import com.google.android.material.button.MaterialButtonToggleGroup
 import androidx.core.graphics.drawable.toDrawable
+import com.elytelabs.dialoghub.R
+import com.elytelabs.dialoghub.models.PresentationStyle
+import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButtonToggleGroup
 
 /**
  * Dialog for adjusting text formatting (size and gravity alignment) with live interactive preview.
+ * Supports standard Dialog and BottomSheet presentation styles, fluent Builder, and Kotlin DSL.
  */
 class TextFormatDialog(private val context: Context) {
 
@@ -30,8 +34,10 @@ class TextFormatDialog(private val context: Context) {
     }
 
     private var formatListener: TextFormatListener? = null
+    private var dismissListener: (() -> Unit)? = null
     private var currentSize: Float = DEFAULT_SIZE_SP
     private var currentAlignment: TextAlignment = TextAlignment.CENTER
+    private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
     private var previewSampleText: String? = null
 
     companion object {
@@ -51,6 +57,10 @@ class TextFormatDialog(private val context: Context) {
         this.formatListener = listener
     }
 
+    fun setOnDismissListener(listener: () -> Unit) {
+        this.dismissListener = listener
+    }
+
     /**
      * Sets custom sample text to display in the live preview box.
      */
@@ -59,21 +69,45 @@ class TextFormatDialog(private val context: Context) {
     }
 
     /**
+     * Configures initial font size in SP.
+     */
+    fun setInitialTextSize(sizeSp: Float) {
+        this.currentSize = sizeSp.coerceIn(MIN_SIZE_SP, MAX_SIZE_SP)
+    }
+
+    /**
+     * Configures initial text alignment.
+     */
+    fun setInitialAlignment(alignment: TextAlignment) {
+        this.currentAlignment = alignment
+    }
+
+    /**
+     * Configures presentation mode (Standard Dialog or BottomSheet).
+     */
+    fun setPresentationStyle(style: PresentationStyle) {
+        this.presentationStyle = style
+    }
+
+    /**
      * Shows the text format dialog using Kotlin lambda callbacks.
      *
      * @param initialSizeSp Current font size in SP (default: 20sp).
      * @param initialAlignment Current text alignment (default: CENTER).
      * @param previewText Optional custom sample text for the live preview box.
+     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
      * @param onFormatChanged Callback triggered when user updates text size or alignment.
      */
     fun show(
         initialSizeSp: Float = DEFAULT_SIZE_SP,
         initialAlignment: TextAlignment = TextAlignment.CENTER,
         previewText: String? = null,
+        presentationStyle: PresentationStyle = this.presentationStyle,
         onFormatChanged: (textSizeSp: Float, alignment: TextAlignment) -> Unit
     ) {
         this.currentSize = initialSizeSp.coerceIn(MIN_SIZE_SP, MAX_SIZE_SP)
         this.currentAlignment = initialAlignment
+        this.presentationStyle = presentationStyle
         if (previewText != null) {
             this.previewSampleText = previewText
         }
@@ -93,12 +127,34 @@ class TextFormatDialog(private val context: Context) {
 
         val themedContext = DialogThemeHelper.getThemedContext(context)
         val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_text_format, null)
-        val dialog = Dialog(themedContext)
-        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-        dialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
-        dialog.setContentView(dialogView)
 
-        val btnBack = dialogView.findViewById<ImageButton>(R.id.btnBack)
+        val dialog: Dialog = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) {
+            val bottomSheet = BottomSheetDialog(themedContext)
+            bottomSheet.setContentView(dialogView)
+            dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
+            bottomSheet.behavior.apply {
+                isFitToContents = true
+                skipCollapsed = true
+                state = BottomSheetBehavior.STATE_EXPANDED
+            }
+            bottomSheet
+        } else {
+            val standardDialog = Dialog(themedContext)
+            standardDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+            standardDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
+            standardDialog.setContentView(dialogView)
+            dialogView.setBackgroundResource(R.drawable.rounded_background)
+            standardDialog
+        }
+
+        dialog.setOnDismissListener {
+            dismissListener?.invoke()
+        }
+
+        val dragHandle = dialogView.findViewById<View>(R.id.dragHandle)
+        dragHandle?.visibility = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) View.VISIBLE else View.GONE
+
+        val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
         val tvLivePreview = dialogView.findViewById<TextView>(R.id.tvLivePreview)
         val tvSizeValue = dialogView.findViewById<TextView>(R.id.tvSizeValue)
         val seekBar = dialogView.findViewById<SeekBar>(R.id.seekBarTextSize)
@@ -113,7 +169,7 @@ class TextFormatDialog(private val context: Context) {
         tvLivePreview.gravity = currentAlignment.gravity
         tvSizeValue.text = "${currentSize.toInt()}sp"
 
-        btnBack.setOnClickListener {
+        btnClose?.setOnClickListener {
             dialog.dismiss()
         }
 
@@ -154,5 +210,54 @@ class TextFormatDialog(private val context: Context) {
         }
 
         dialog.show()
+
+        if (presentationStyle == PresentationStyle.DIALOG) {
+            dialog.window?.setLayout(
+                (themedContext.resources.displayMetrics.widthPixels * 0.92f).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+    }
+
+    /**
+     * Fluent Builder for [TextFormatDialog].
+     */
+    class Builder(private val context: Context) {
+        private var initialSizeSp: Float = DEFAULT_SIZE_SP
+        private var initialAlignment: TextAlignment = TextAlignment.CENTER
+        private var previewSampleText: String? = null
+        private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+        private var listener: TextFormatListener? = null
+        private var dismissListener: (() -> Unit)? = null
+
+        fun setTextSize(sizeSp: Float) = apply { this.initialSizeSp = sizeSp }
+        fun setAlignment(alignment: TextAlignment) = apply { this.initialAlignment = alignment }
+        fun setPreviewText(text: String?) = apply { this.previewSampleText = text }
+        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+        fun setOnFormatChanged(listener: (Float, TextAlignment) -> Unit) = apply {
+            this.listener = TextFormatListener { size, align -> listener(size, align) }
+        }
+        fun setOnFormatChanged(listener: TextFormatListener) = apply { this.listener = listener }
+        fun setOnDismiss(listener: () -> Unit) = apply { this.dismissListener = listener }
+
+        fun build(): TextFormatDialog {
+            val dialog = TextFormatDialog(context)
+            dialog.setInitialTextSize(initialSizeSp)
+            dialog.setInitialAlignment(initialAlignment)
+            dialog.setPreviewText(previewSampleText)
+            dialog.setPresentationStyle(presentationStyle)
+            listener?.let { dialog.setTextFormatListener(it) }
+            dismissListener?.let { dialog.setOnDismissListener(it) }
+            return dialog
+        }
+
+        fun show(onFormatChanged: ((Float, TextAlignment) -> Unit)? = null): TextFormatDialog {
+            val dialog = build()
+            if (onFormatChanged != null) {
+                dialog.setTextFormatListener { size, align -> onFormatChanged(size, align) }
+            }
+            dialog.showTextFormatDialog()
+            return dialog
+        }
     }
 }

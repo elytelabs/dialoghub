@@ -46,6 +46,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.recyclerview)
 
@@ -59,7 +62,7 @@ afterEvaluate {
             register<MavenPublication>("release") {
                 groupId = "com.elytelabs.dialoghub"
                 artifactId = "dialoghub"
-                version = "1.2.1"
+                version = "1.3.0"
                 from(components["release"])
 
                 pom {

@@ -3,11 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardView"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
+    android:layout_height="64dp"
     android:layout_marginStart="6dp"
     android:layout_marginTop="6dp"
     android:layout_marginEnd="6dp"
     android:layout_marginBottom="6dp"
+    android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="#F8F9FA"
     app:cardCornerRadius="14dp"
     app:cardElevation="1dp"
@@ -26,8 +27,8 @@
             android:paddingEnd="12dp"
             android:text="@string/sample_text"
             android:textColor="#212121"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:textDirection="anyRtl"
+            android:textSize="18sp" />
 
         <View
             android:id="@+id/selectedOverlay"

@@ -100,6 +100,113 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- Presentation Style Selector Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Presentation Style:"
+                        android:textColor="#1F2937"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioGroup
+                        android:id="@+id/rgPresentationStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/rbStyleDialog"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:checked="true"
+                            android:text="Floating Dialog"
+                            android:textSize="13sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbStyleBottomSheet"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Bottom Sheet"
+                            android:textSize="13sp" />
+                    </RadioGroup>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Invocation Mode Selector Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="API Invocation Paradigm:"
+                        android:textColor="#1F2937"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioGroup
+                        android:id="@+id/rgInvocationMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical">
+
+                        <RadioButton
+                            android:id="@+id/rbModeDsl"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="Kotlin DSL &amp; Fluent Builder"
+                            android:textSize="13sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbModeCoroutine"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Coroutines Async Suspension (await*)"
+                            android:textSize="13sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbModeTraditional"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Traditional Callback / Listener"
+                            android:textSize="13sp" />
+                    </RadioGroup>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- Dialog Buttons -->
             <Button
                 android:id="@+id/btnImageSelector"

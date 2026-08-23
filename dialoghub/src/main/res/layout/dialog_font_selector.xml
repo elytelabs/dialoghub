@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -9,38 +10,156 @@
     android:paddingEnd="16dp"
     android:paddingBottom="20dp">
 
+    <!-- Top Material Drag Handle Pill -->
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Header with Title and Close Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingTop="14dp"
-        android:paddingBottom="10dp">
-
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?actionBarItemBackground"
-            android:contentDescription="@string/back_button"
-            android:paddingEnd="12dp"
-            android:src="@drawable/arrow_back" />
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
             android:text="@string/choose_style"
             android:textColor="#1F2937"
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?actionBarItemBackground"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_close" />
     </LinearLayout>
+
+    <!-- Interactive Live Preview & Custom Urdu/English Text Box -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="8dp"
+        app:cardBackgroundColor="#F8F9FA"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <EditText
+                android:id="@+id/etFontPreviewInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:gravity="center"
+                android:hint="Type preview text (اردو / English)..."
+                android:paddingTop="4dp"
+                android:paddingBottom="6dp"
+                android:textColor="#1F2937"
+                android:textColorHint="#9CA3AF"
+                android:textDirection="anyRtl"
+                android:textSize="16sp" />
+
+            <!-- Quick Preset Chips for Easy Testing -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipUrdu1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#E5E7EB"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="اردو شاعری"
+                        android:textColor="#374151"
+                        android:textDirection="rtl"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/chipUrdu2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#E5E7EB"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="حسنِ کلام"
+                        android:textColor="#374151"
+                        android:textDirection="rtl"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/chipEnglish"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#E5E7EB"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Sample Text"
+                        android:textColor="#374151"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/chipNumbers"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#E5E7EB"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="12345"
+                        android:textColor="#374151"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/fontRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         tools:listitem="@layout/font_item_text" />
 
 </LinearLayout>

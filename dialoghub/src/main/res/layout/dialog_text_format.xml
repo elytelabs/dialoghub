@@ -10,22 +10,23 @@
     android:paddingEnd="16dp"
     android:paddingBottom="20dp">
 
-    <!-- Header -->
+    <!-- Top Material Drag Handle Pill -->
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Header with Title and Close Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp">
-
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?actionBarItemBackground"
-            android:contentDescription="@string/back_button"
-            android:paddingEnd="12dp"
-            android:src="@drawable/arrow_back" />
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp">
 
         <TextView
             android:layout_width="0dp"
@@ -36,16 +37,24 @@
             android:textColor="#1F2937"
             android:textSize="18sp"
             android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?actionBarItemBackground"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_close" />
     </LinearLayout>
 
-    <!-- Live Preview Card -->
+    <!-- Live Preview Box -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="90dp"
+        android:layout_height="100dp"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="16dp"
         app:cardBackgroundColor="#F8F9FA"
-        app:cardCornerRadius="12dp"
+        app:cardCornerRadius="14dp"
         app:cardElevation="0dp">
 
         <TextView
@@ -54,8 +63,9 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:padding="12dp"
-            android:text="@string/sample_text"
+            android:text="Preview Text / نمونہ"
             android:textColor="#212121"
+            android:textDirection="anyRtl"
             android:textSize="20sp" />
     </androidx.cardview.widget.CardView>
 
@@ -64,8 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingTop="4dp">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="0dp"
@@ -85,9 +94,9 @@
             android:backgroundTint="#EEEEEE"
             android:fontFamily="sans-serif-medium"
             android:paddingStart="10dp"
-            android:paddingTop="4dp"
+            android:paddingTop="3dp"
             android:paddingEnd="10dp"
-            android:paddingBottom="4dp"
+            android:paddingBottom="3dp"
             android:text="20sp"
             android:textColor="#333333"
             android:textSize="12sp"
@@ -103,8 +112,8 @@
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
         android:progress="8"
-        android:progressTint="@color/yellow"
-        android:thumbTint="@color/yellow" />
+        android:progressTint="?attr/colorPrimary"
+        android:thumbTint="?attr/colorPrimary" />
 
     <!-- Text Alignment Section -->
     <TextView
