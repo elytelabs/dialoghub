@@ -1,4 +1,4 @@
-﻿package com.elytelabs.dialoghub.models
+package com.elytelabs.dialoghub.models
 
 import android.graphics.Color
 import android.widget.TextView
@@ -24,6 +24,7 @@ data class TextTypographyConfig(
     fun applyTo(textView: TextView) {
         textView.textSize = textSizeSp
         textView.gravity = alignment.gravity
+        textView.paint.shader = null
         textView.setTextColor(textColor)
 
         if (fontResId != null) {

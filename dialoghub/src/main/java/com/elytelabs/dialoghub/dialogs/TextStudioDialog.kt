@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.text.SpannableString
 import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
@@ -23,11 +24,11 @@ import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ColorAdapter
 import com.elytelabs.dialoghub.adapters.ColorSwatchAdapter
 import com.elytelabs.dialoghub.adapters.FontStyleAdapter
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.models.StudioTab
-import com.elytelabs.dialoghub.models.TextHighlightConfig
-import com.elytelabs.dialoghub.models.TextStrokeConfig
 import com.elytelabs.dialoghub.models.TextTypographyConfig
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
 import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -36,59 +37,141 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 
 /**
  * All-In-One Unified Text Studio Dialog for comprehensive typography styling:
- * Fonts, Colors, Formatting (Size & Alignment), Text Stroke/Outline,
- * Visual Effects (Styles & Shadow), and Background Ribbon/Highlight.
+ * Fonts, Curated Colors, Formatting (Size & Alignment),
+ * Text Stroke/Outline, Visual Effects (Styles & Shadow), and Background Ribbon/Highlight.
  *
- * Supports feature customization via [enabledTabs], active effect badges, and optional [showPreviewPane].
+ * Features real-time live preview with custom wallpaper background canvas, monetization item locking, 1-Tap Reset,
+ * and zero redundant bottom buttons.
  */
 class TextStudioDialog(private val context: Context) {
 
+    private var initialConfig = TextTypographyConfig()
     private var currentConfig = TextTypographyConfig()
     private var samplePreviewText: String? = null
     private var customFonts: List<Int>? = null
     private var enabledTabs: Set<StudioTab> = StudioTab.DEFAULT
-    private var showPreviewPane: Boolean = false
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    private var showPreviewPane: Boolean = true
+    private var backgroundDrawable: Drawable? = null
+    private var backgroundDrawableRes: Int? = null
+    private var backgroundColorInt: Int? = null
     private var studioListener: TextStudioListener? = null
     private var livePreviewListener: ((TextTypographyConfig) -> Unit)? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
 
     fun interface TextStudioListener {
         fun onTypographyApplied(config: TextTypographyConfig)
     }
 
-    fun setConfig(config: TextTypographyConfig) = apply { this.currentConfig = config }
+    /**
+     * Sets the initial typography configuration for the studio editor.
+     */
+    fun setConfig(config: TextTypographyConfig) = apply {
+        this.initialConfig = config
+        this.currentConfig = config
+    }
+
+    /**
+     * Sets custom preview sample text for the live preview box and font cards.
+     */
     fun setPreviewText(text: String?) = apply { this.samplePreviewText = text }
+
+    /**
+     * Sets the font resources to display in the Fonts tab.
+     */
     fun setFonts(fonts: List<Int>) = apply { this.customFonts = fonts }
+
+    /**
+     * Sets which studio tabs to enable.
+     */
     fun setTabs(vararg tabs: StudioTab) = apply { this.enabledTabs = tabs.toSet() }
+
+    /**
+     * Sets which studio tabs to enable.
+     */
     fun setTabs(tabs: Set<StudioTab>) = apply { this.enabledTabs = tabs }
+
+    /**
+     * Controls whether the top live preview pane is displayed inside the bottom sheet.
+     */
     fun setShowPreviewPane(show: Boolean) = apply { this.showPreviewPane = show }
-    fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+
+    /**
+     * Sets a custom wallpaper background drawable for the preview canvas.
+     */
+    fun setBackgroundDrawable(drawable: Drawable?) = apply { this.backgroundDrawable = drawable }
+
+    /**
+     * Sets a custom wallpaper background drawable resource ID for the preview canvas.
+     */
+    fun setBackgroundRes(resId: Int?) = apply { this.backgroundDrawableRes = resId }
+
+    /**
+     * Sets a solid background color for the preview canvas.
+     */
+    fun setBackgroundColor(color: Int?) = apply { this.backgroundColorInt = color }
+
+    /**
+     * Sets monetization item lock provider.
+     */
+    fun setLockProvider(provider: ItemLockProvider?) = apply { this.lockProvider = provider }
+
+    /**
+     * Sets click interceptor callback for locked items, fonts, wallpapers, or studio tool tabs.
+     */
+    fun setOnLockedItemClickListener(listener: (LockableItem, unlock: () -> Unit) -> Unit) = apply {
+        this.lockedItemClickListener = listener
+    }
+
+    /**
+     * Sets callback invoked when typography changes are applied.
+     */
     fun setStudioListener(listener: TextStudioListener) = apply { this.studioListener = listener }
+
+    /**
+     * Sets callback invoked when typography changes are applied.
+     */
     fun setStudioListener(listener: (TextTypographyConfig) -> Unit) = apply {
         this.studioListener = TextStudioListener { listener(it) }
     }
+
+    /**
+     * Sets live preview callback invoked in real-time as the user tweaks sliders or selections.
+     */
     fun setOnLivePreviewListener(listener: (TextTypographyConfig) -> Unit) = apply {
         this.livePreviewListener = listener
     }
+
+    /**
+     * Sets dismissal listener for the dialog.
+     */
     fun setOnDismissListener(listener: () -> Unit) = apply { this.dismissListener = listener }
 
+    /**
+     * Convenience method to show the unified text studio dialog using Kotlin lambda callbacks.
+     */
     fun show(
         initialConfig: TextTypographyConfig = this.currentConfig,
         previewText: String? = null,
         fonts: List<Int>? = null,
         enabledTabs: Set<StudioTab> = this.enabledTabs,
         showPreviewPane: Boolean = this.showPreviewPane,
-        presentationStyle: PresentationStyle = this.presentationStyle,
+        backgroundDrawable: Drawable? = this.backgroundDrawable,
+        backgroundDrawableRes: Int? = this.backgroundDrawableRes,
+        backgroundColorInt: Int? = this.backgroundColorInt,
         onLivePreview: ((config: TextTypographyConfig) -> Unit)? = null,
         onTypographyApplied: (config: TextTypographyConfig) -> Unit
     ) {
+        this.initialConfig = initialConfig
         this.currentConfig = initialConfig
         if (previewText != null) this.samplePreviewText = previewText
         if (fonts != null) this.customFonts = fonts
         this.enabledTabs = enabledTabs
         this.showPreviewPane = showPreviewPane
-        this.presentationStyle = presentationStyle
+        this.backgroundDrawable = backgroundDrawable
+        this.backgroundDrawableRes = backgroundDrawableRes
+        this.backgroundColorInt = backgroundColorInt
         this.livePreviewListener = onLivePreview
         this.studioListener = TextStudioListener { onTypographyApplied(it) }
         showTextStudioDialog()
@@ -112,6 +195,7 @@ class TextStudioDialog(private val context: Context) {
         }
 
         bottomSheet.setOnDismissListener {
+            studioListener?.onTypographyApplied(currentConfig)
             dismissListener?.invoke()
         }
 
@@ -119,32 +203,56 @@ class TextStudioDialog(private val context: Context) {
         dragHandle?.visibility = View.VISIBLE
 
         val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
+        val btnReset = dialogView.findViewById<TextView>(R.id.btnStudioReset)
         val cardPreview = dialogView.findViewById<CardView>(R.id.cardStudioPreview)
+        val ivPreviewBg = dialogView.findViewById<ImageView>(R.id.ivStudioPreviewBg)
         val btnCanvasToggle = dialogView.findViewById<ImageView>(R.id.btnStudioCanvasToggle)
         val tvPreview = dialogView.findViewById<TextView>(R.id.tvStudioPreview)
-        val btnApply = dialogView.findViewById<Button>(R.id.btnApplyStudio)
         val hsvStudioTabs = dialogView.findViewById<android.widget.HorizontalScrollView>(R.id.hsvStudioTabs)
 
-        // In-dialog preview pane visibility (default false for on-screen live sync)
+        // In-dialog preview pane visibility (default true for high-fidelity on-screen preview)
         cardPreview?.visibility = if (showPreviewPane) View.VISIBLE else View.GONE
+
+        // Apply Host Background if provided
+        var hasCustomBg = false
+        if (backgroundDrawable != null) {
+            ivPreviewBg?.setImageDrawable(backgroundDrawable)
+            ivPreviewBg?.visibility = View.VISIBLE
+            btnCanvasToggle?.visibility = View.GONE
+            hasCustomBg = true
+        } else if (backgroundDrawableRes != null) {
+            ivPreviewBg?.setImageResource(backgroundDrawableRes!!)
+            ivPreviewBg?.visibility = View.VISIBLE
+            btnCanvasToggle?.visibility = View.GONE
+            hasCustomBg = true
+        } else if (backgroundColorInt != null) {
+            cardPreview?.setCardBackgroundColor(backgroundColorInt!!)
+            ivPreviewBg?.visibility = View.GONE
+            btnCanvasToggle?.visibility = View.GONE
+            hasCustomBg = true
+        }
 
         // Canvas Contrast Mode Toggle (0: Dark Slate, 1: Light Slate, 2: Warm Parchment)
         var canvasMode = 0
         val canvasColors = listOf("#0F172A".toColorInt(), "#F8FAFC".toColorInt(), "#FEF3C7".toColorInt())
 
         fun updateCanvasMode() {
-            cardPreview?.setCardBackgroundColor(canvasColors[canvasMode])
-            if (canvasMode == 0) {
-                btnCanvasToggle?.backgroundTintList = ColorStateList.valueOf("#33FFFFFF".toColorInt())
-                btnCanvasToggle?.setColorFilter(Color.WHITE)
-            } else {
-                btnCanvasToggle?.backgroundTintList = ColorStateList.valueOf("#33000000".toColorInt())
-                btnCanvasToggle?.setColorFilter("#1F2937".toColorInt())
+            if (!hasCustomBg) {
+                cardPreview?.setCardBackgroundColor(canvasColors[canvasMode])
+                if (canvasMode == 0) {
+                    btnCanvasToggle?.backgroundTintList = ColorStateList.valueOf("#33FFFFFF".toColorInt())
+                    btnCanvasToggle?.setColorFilter(Color.WHITE)
+                } else {
+                    btnCanvasToggle?.backgroundTintList = ColorStateList.valueOf("#33000000".toColorInt())
+                    btnCanvasToggle?.setColorFilter("#1F2937".toColorInt())
+                }
             }
         }
-        btnCanvasToggle?.setOnClickListener {
-            canvasMode = (canvasMode + 1) % canvasColors.size
-            updateCanvasMode()
+        if (!hasCustomBg) {
+            btnCanvasToggle?.setOnClickListener {
+                canvasMode = (canvasMode + 1) % canvasColors.size
+                updateCanvasMode()
+            }
         }
 
         // Tab Container Views
@@ -195,6 +303,21 @@ class TextStudioDialog(private val context: Context) {
             dotRibbon?.visibility = if (currentConfig.highlightConfig.isEnabled && Color.alpha(currentConfig.highlightConfig.backgroundColor) > 0) View.VISIBLE else View.GONE
         }
 
+        // Initialize Adapters
+        val fontAdapter = FontStyleAdapter(themedContext)
+        val colorAdapter = ColorAdapter()
+        val strokeColorAdapter = ColorSwatchAdapter(includeNoneOption = false)
+        val shadowColorAdapter = ColorSwatchAdapter(includeNoneOption = false)
+        val ribbonColorAdapter = ColorSwatchAdapter(includeNoneOption = true)
+
+        fun refreshAllAdapters() {
+            fontAdapter.notifyItemRangeChanged(0, fontAdapter.itemCount)
+            colorAdapter.notifyItemRangeChanged(0, colorAdapter.itemCount)
+            strokeColorAdapter.notifyItemRangeChanged(0, strokeColorAdapter.itemCount)
+            shadowColorAdapter.notifyItemRangeChanged(0, shadowColorAdapter.itemCount)
+            ribbonColorAdapter.notifyItemRangeChanged(0, ribbonColorAdapter.itemCount)
+        }
+
         // Tab structure: (StudioTab, ContainerView, TabTextView, ContentView)
         data class TabItem(val tab: StudioTab, val container: View, val tabBtn: TextView, val contentView: View)
 
@@ -214,7 +337,15 @@ class TextStudioDialog(private val context: Context) {
 
         val activeEnabledItems = tabItems.filter { enabledTabs.contains(it.tab) }
 
-        fun switchTab(activeTabBtn: TextView, activeContentView: View) {
+        fun switchTab(activeTabBtn: TextView, activeContentView: View, targetTab: StudioTab? = null) {
+            if (targetTab != null && lockProvider?.isTabLocked(targetTab) == true) {
+                lockedItemClickListener?.invoke(LockableItem.StudioFeatureTab(targetTab)) {
+                    refreshAllAdapters()
+                    switchTab(activeTabBtn, activeContentView, null)
+                }
+                return
+            }
+
             activeEnabledItems.forEach { item ->
                 val isSelected = (item.tabBtn == activeTabBtn)
                 if (isSelected) {
@@ -240,8 +371,8 @@ class TextStudioDialog(private val context: Context) {
         }
 
         activeEnabledItems.forEach { item ->
-            item.container.setOnClickListener { switchTab(item.tabBtn, item.contentView) }
-            item.tabBtn.setOnClickListener { switchTab(item.tabBtn, item.contentView) }
+            item.container.setOnClickListener { switchTab(item.tabBtn, item.contentView, item.tab) }
+            item.tabBtn.setOnClickListener { switchTab(item.tabBtn, item.contentView, item.tab) }
         }
 
         // Initially select first enabled tab
@@ -269,6 +400,7 @@ class TextStudioDialog(private val context: Context) {
 
             updateActiveTabBadges()
             livePreviewListener?.invoke(currentConfig)
+            studioListener?.onTypographyApplied(currentConfig)
         }
 
         if (!samplePreviewText.isNullOrEmpty() && tvPreview != null) {
@@ -278,9 +410,17 @@ class TextStudioDialog(private val context: Context) {
 
         // 1. Setup Fonts RecyclerView (Default first tab)
         rvFonts.layoutManager = GridLayoutManager(themedContext, 2)
-        val fontAdapter = FontStyleAdapter(themedContext)
         rvFonts.adapter = fontAdapter
         customFonts?.let { fontAdapter.setFonts(it) }
+        fontAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            fontAdapter.setOnLockedItemClickListener { lockedFont, unlock ->
+                listener(lockedFont) {
+                    refreshAllAdapters()
+                    unlock()
+                }
+            }
+        }
         fontAdapter.setPreviewText(samplePreviewText)
         fontAdapter.setSelectedFont(currentConfig.fontResId)
         fontAdapter.setOnFontClickListener { fontResId ->
@@ -288,13 +428,21 @@ class TextStudioDialog(private val context: Context) {
             renderPreview()
         }
 
-        // 2. Setup Colors RecyclerView with Category Chips
+        // 2. Setup Color Tab (Curated Color Palettes)
         val rvColors = dialogView.findViewById<RecyclerView>(R.id.rvStudioColors)
         rvColors.layoutManager = GridLayoutManager(themedContext, 5)
-        val colorAdapter = ColorAdapter()
         rvColors.adapter = colorAdapter
         colorAdapter.setColors(ColorPalettes.ALL_CURATED)
         colorAdapter.setSelectedColor(currentConfig.textColor)
+        colorAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            colorAdapter.setOnLockedItemClickListener { lockedColor, unlock ->
+                listener(lockedColor) {
+                    refreshAllAdapters()
+                    unlock()
+                }
+            }
+        }
         colorAdapter.setOnItemClickListener { color ->
             currentConfig = currentConfig.copy(textColor = color)
             renderPreview()
@@ -355,11 +503,14 @@ class TextStudioDialog(private val context: Context) {
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
 
-        when (currentConfig.alignment) {
-            TextFormatDialog.TextAlignment.LEFT -> tgAlignment?.check(R.id.btnStudioAlignLeft)
-            TextFormatDialog.TextAlignment.CENTER -> tgAlignment?.check(R.id.btnStudioAlignCenter)
-            TextFormatDialog.TextAlignment.RIGHT -> tgAlignment?.check(R.id.btnStudioAlignRight)
+        fun updateAlignmentToggle(alignment: TextFormatDialog.TextAlignment) {
+            when (alignment) {
+                TextFormatDialog.TextAlignment.LEFT -> tgAlignment?.check(R.id.btnStudioAlignLeft)
+                TextFormatDialog.TextAlignment.CENTER -> tgAlignment?.check(R.id.btnStudioAlignCenter)
+                TextFormatDialog.TextAlignment.RIGHT -> tgAlignment?.check(R.id.btnStudioAlignRight)
+            }
         }
+        updateAlignmentToggle(currentConfig.alignment)
 
         btnLeft?.setOnClickListener {
             currentConfig = currentConfig.copy(alignment = TextFormatDialog.TextAlignment.LEFT)
@@ -373,6 +524,42 @@ class TextStudioDialog(private val context: Context) {
             currentConfig = currentConfig.copy(alignment = TextFormatDialog.TextAlignment.RIGHT)
             renderPreview()
         }
+
+        // Letter Spacing & Line Spacing
+        val sbLetterSpacing = dialogView.findViewById<SeekBar>(R.id.sbStudioLetterSpacing)
+        val tvLetterSpacingVal = dialogView.findViewById<TextView>(R.id.tvStudioLetterSpacingVal)
+        val sbLineSpacing = dialogView.findViewById<SeekBar>(R.id.sbStudioLineSpacing)
+        val tvLineSpacingVal = dialogView.findViewById<TextView>(R.id.tvStudioLineSpacingVal)
+
+        sbLetterSpacing?.progress = (currentConfig.effectConfig.letterSpacing * 100).toInt().coerceIn(0, 30)
+        tvLetterSpacingVal?.text = String.format("%.2f", currentConfig.effectConfig.letterSpacing)
+        sbLetterSpacing?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                val ls = progress / 100f
+                currentConfig = currentConfig.copy(
+                    effectConfig = currentConfig.effectConfig.copy(letterSpacing = ls)
+                )
+                tvLetterSpacingVal?.text = String.format("%.2f", ls)
+                renderPreview()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+
+        sbLineSpacing?.progress = ((currentConfig.effectConfig.lineSpacingMultiplier - 0.8f) * 10).toInt().coerceIn(0, 20)
+        tvLineSpacingVal?.text = String.format("%.1fx", currentConfig.effectConfig.lineSpacingMultiplier)
+        sbLineSpacing?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                val mult = 0.8f + (progress / 10f)
+                currentConfig = currentConfig.copy(
+                    effectConfig = currentConfig.effectConfig.copy(lineSpacingMultiplier = mult)
+                )
+                tvLineSpacingVal?.text = String.format("%.1fx", mult)
+                renderPreview()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
 
         // 4. Setup Stroke View
         val sbStroke = dialogView.findViewById<SeekBar>(R.id.sbStudioStroke)
@@ -397,17 +584,29 @@ class TextStudioDialog(private val context: Context) {
         })
 
         rvStrokeColors.layoutManager = LinearLayoutManager(themedContext, LinearLayoutManager.HORIZONTAL, false)
-        val strokeColorAdapter = ColorSwatchAdapter(includeNoneOption = false)
         rvStrokeColors.adapter = strokeColorAdapter
         strokeColorAdapter.setColors(ColorPalettes.ALL_CURATED)
         strokeColorAdapter.setSelectedColor(currentConfig.strokeConfig.strokeColor)
+        strokeColorAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            strokeColorAdapter.setOnLockedItemClickListener { lockedColor, unlock ->
+                listener(lockedColor) {
+                    refreshAllAdapters()
+                    unlock()
+                }
+            }
+        }
         strokeColorAdapter.setOnSwatchClickListener { color, _ ->
+            val strokeWidth = if (currentConfig.strokeConfig.strokeWidthDp <= 0f) 4f else currentConfig.strokeConfig.strokeWidthDp
             currentConfig = currentConfig.copy(
                 strokeConfig = currentConfig.strokeConfig.copy(
                     strokeColor = color,
-                    isEnabled = currentConfig.strokeConfig.strokeWidthDp > 0
+                    strokeWidthDp = strokeWidth,
+                    isEnabled = true
                 )
             )
+            sbStroke.progress = strokeWidth.toInt()
+            tvStrokeVal.text = "${strokeWidth.toInt()}dp"
             renderPreview()
         }
 
@@ -488,13 +687,29 @@ class TextStudioDialog(private val context: Context) {
         })
 
         rvShadowColors.layoutManager = LinearLayoutManager(themedContext, LinearLayoutManager.HORIZONTAL, false)
-        val shadowColorAdapter = ColorSwatchAdapter(includeNoneOption = false)
         rvShadowColors.adapter = shadowColorAdapter
         shadowColorAdapter.setColors(ColorPalettes.ALL_CURATED)
         shadowColorAdapter.setSelectedColor(currentConfig.effectConfig.shadowColor)
+        shadowColorAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            shadowColorAdapter.setOnLockedItemClickListener { lockedColor, unlock ->
+                listener(lockedColor) {
+                    refreshAllAdapters()
+                    unlock()
+                }
+            }
+        }
         shadowColorAdapter.setOnSwatchClickListener { color, _ ->
             val eff = currentConfig.effectConfig
-            currentConfig = currentConfig.copy(effectConfig = eff.copy(shadowColor = color))
+            val radius = if (eff.shadowRadius <= 0f) 6f else eff.shadowRadius
+            currentConfig = currentConfig.copy(
+                effectConfig = eff.copy(
+                    shadowColor = color,
+                    shadowRadius = radius
+                )
+            )
+            sbShadow.progress = radius.toInt()
+            tvShadowVal.text = "${radius.toInt()}dp"
             renderPreview()
         }
 
@@ -518,9 +733,17 @@ class TextStudioDialog(private val context: Context) {
         })
 
         rvRibbonColors.layoutManager = LinearLayoutManager(themedContext, LinearLayoutManager.HORIZONTAL, false)
-        val ribbonColorAdapter = ColorSwatchAdapter(includeNoneOption = true)
         rvRibbonColors.adapter = ribbonColorAdapter
         ribbonColorAdapter.setColors(ColorPalettes.ALL_CURATED)
+        ribbonColorAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            ribbonColorAdapter.setOnLockedItemClickListener { lockedColor, unlock ->
+                listener(lockedColor) {
+                    refreshAllAdapters()
+                    unlock()
+                }
+            }
+        }
         ribbonColorAdapter.setSelectedColor(
             if (currentConfig.highlightConfig.isEnabled) currentConfig.highlightConfig.backgroundColor else null,
             isNone = !currentConfig.highlightConfig.isEnabled
@@ -568,42 +791,152 @@ class TextStudioDialog(private val context: Context) {
         chipRibbonDark?.setOnClickListener { selectRibbonChip(chipRibbonDark, ColorPalettes.MELANCHOLY_DARK) }
         chipRibbonVintage?.setOnClickListener { selectRibbonChip(chipRibbonVintage, ColorPalettes.VINTAGE_EARTHY) }
 
-        btnClose.setOnClickListener { bottomSheet.dismiss() }
+        // 1-Tap Reset Handler (Restores initialConfig with which the studio opened)
+        btnReset?.setOnClickListener {
+            currentConfig = initialConfig
+            fontAdapter.setSelectedFont(currentConfig.fontResId)
+            colorAdapter.setSelectedColor(currentConfig.textColor)
+            strokeColorAdapter.setSelectedColor(currentConfig.strokeConfig.strokeColor)
+            shadowColorAdapter.setSelectedColor(currentConfig.effectConfig.shadowColor)
+            ribbonColorAdapter.setSelectedColor(
+                if (currentConfig.highlightConfig.isEnabled) currentConfig.highlightConfig.backgroundColor else null,
+                isNone = !currentConfig.highlightConfig.isEnabled
+            )
 
-        btnApply.setOnClickListener {
-            studioListener?.onTypographyApplied(currentConfig)
+            sbSize.progress = (currentConfig.textSizeSp - 12f).coerceAtLeast(0f).toInt()
+            tvSizeVal.text = "${currentConfig.textSizeSp.toInt()}sp"
+            updateAlignmentToggle(currentConfig.alignment)
+
+            sbLetterSpacing?.progress = (currentConfig.effectConfig.letterSpacing * 100).toInt().coerceIn(0, 30)
+            tvLetterSpacingVal?.text = String.format("%.2f", currentConfig.effectConfig.letterSpacing)
+            sbLineSpacing?.progress = ((currentConfig.effectConfig.lineSpacingMultiplier - 0.8f) * 10).toInt().coerceIn(0, 20)
+            tvLineSpacingVal?.text = String.format("%.1fx", currentConfig.effectConfig.lineSpacingMultiplier)
+
+            sbStroke.progress = currentConfig.strokeConfig.strokeWidthDp.toInt()
+            tvStrokeVal.text = "${currentConfig.strokeConfig.strokeWidthDp.toInt()}dp"
+
+            sbShadow.progress = currentConfig.effectConfig.shadowRadius.toInt()
+            tvShadowVal.text = "${currentConfig.effectConfig.shadowRadius.toInt()}dp"
+
+            sbRadius.progress = currentConfig.highlightConfig.cornerRadiusDp.toInt()
+            tvRadiusVal.text = "${currentConfig.highlightConfig.cornerRadiusDp.toInt()}dp"
+
+            renderPreview()
+        }
+
+        btnClose.setOnClickListener {
             bottomSheet.dismiss()
         }
 
         bottomSheet.show()
     }
 
+    /**
+     * Fluent Builder for constructing and displaying a [TextStudioDialog].
+     */
     class Builder(private val context: Context) {
         private var config = TextTypographyConfig()
         private var previewText: String? = null
         private var fonts: List<Int>? = null
         private var enabledTabs: Set<StudioTab> = StudioTab.DEFAULT
-        private var showPreviewPane: Boolean = false
-        private var presentationStyle = PresentationStyle.BOTTOM_SHEET
+        private var showPreviewPane: Boolean = true
+        private var backgroundDrawable: Drawable? = null
+        private var backgroundDrawableRes: Int? = null
+        private var backgroundColorInt: Int? = null
+        private var lockProvider: ItemLockProvider? = null
+        private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
         private var listener: TextStudioListener? = null
         private var livePreviewListener: ((TextTypographyConfig) -> Unit)? = null
         private var dismissListener: (() -> Unit)? = null
 
+        /** Sets the initial typography configuration. */
         fun setConfig(config: TextTypographyConfig) = apply { this.config = config }
+
+        /** Sets custom preview sample text. */
         fun setPreviewText(text: String?) = apply { this.previewText = text }
+
+        /** Sets the list of font resource IDs. */
         fun setFonts(fonts: List<Int>) = apply { this.fonts = fonts }
+
+        /** Sets the font resource IDs. */
+        fun setFonts(vararg fonts: Int) = apply { this.fonts = fonts.toList() }
+
+        /** Sets enabled tabs. */
         fun setTabs(vararg tabs: StudioTab) = apply { this.enabledTabs = tabs.toSet() }
+
+        /** Sets enabled tabs. */
         fun setTabs(tabs: Set<StudioTab>) = apply { this.enabledTabs = tabs }
+
+        /** Controls visibility of the top in-dialog preview pane. */
         fun setShowPreviewPane(show: Boolean) = apply { this.showPreviewPane = show }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+
+        /** Sets a background wallpaper drawable for the preview canvas. */
+        fun setBackgroundDrawable(drawable: Drawable?) = apply { this.backgroundDrawable = drawable }
+
+        /** Sets a background wallpaper drawable resource ID for the preview canvas. */
+        fun setBackgroundRes(resId: Int?) = apply { this.backgroundDrawableRes = resId }
+
+        /** Sets a background color for the preview canvas. */
+        fun setBackgroundColor(color: Int?) = apply { this.backgroundColorInt = color }
+
+        /** Sets monetization item lock provider. */
+        fun setLockProvider(provider: ItemLockProvider) = apply { this.lockProvider = provider }
+
+        /** Locks specified font resource IDs behind monetization. */
+        fun setLockedFonts(vararg fontResIds: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockFonts(*fontResIds)
+        }
+
+        /** Locks specified font resource IDs behind monetization. */
+        fun setLockedFonts(fontResIds: Collection<Int>) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockFonts(fontResIds)
+        }
+
+        /** Locks specified color values behind monetization. */
+        fun setLockedColors(vararg colors: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockColors(*colors)
+        }
+
+        /** Locks specified color values behind monetization. */
+        fun setLockedColors(colors: Collection<Int>) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockColors(colors)
+        }
+
+        /** Locks specified studio feature tabs behind monetization. */
+        fun setLockedTabs(vararg tabs: StudioTab) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockTabs(*tabs)
+        }
+
+        /** Locks specified studio feature tabs behind monetization. */
+        fun setLockedTabs(tabs: Collection<StudioTab>) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockTabs(tabs)
+        }
+
+        /** Intercepts clicks on locked items/tabs to trigger ads or IAP prompts. */
+        fun setOnLockedItemClicked(listener: (LockableItem, unlock: () -> Unit) -> Unit) = apply {
+            this.lockedItemClickListener = listener
+        }
+
+        /** Receives real-time typography updates as user tweaks controls. */
         fun setOnLivePreviewListener(listener: (TextTypographyConfig) -> Unit) = apply {
             this.livePreviewListener = listener
         }
+
+        /** Receives the final typography configuration upon dialog completion. */
         fun setOnTypographyApplied(listener: (TextTypographyConfig) -> Unit) = apply {
             this.listener = TextStudioListener { listener(it) }
         }
+
+        /** Sets dialog dismissal listener. */
         fun setOnDismiss(listener: () -> Unit) = apply { this.dismissListener = listener }
 
+        /** Builds the [TextStudioDialog] instance. */
         fun build(): TextStudioDialog {
             val dialog = TextStudioDialog(context)
             dialog.setConfig(config)
@@ -611,13 +944,18 @@ class TextStudioDialog(private val context: Context) {
             fonts?.let { dialog.setFonts(it) }
             dialog.setTabs(enabledTabs)
             dialog.setShowPreviewPane(showPreviewPane)
-            dialog.setPresentationStyle(presentationStyle)
+            dialog.setBackgroundDrawable(backgroundDrawable)
+            dialog.setBackgroundRes(backgroundDrawableRes)
+            dialog.setBackgroundColor(backgroundColorInt)
+            dialog.setLockProvider(lockProvider)
+            lockedItemClickListener?.let { dialog.setOnLockedItemClickListener(it) }
             listener?.let { dialog.setStudioListener(it) }
             livePreviewListener?.let { dialog.setOnLivePreviewListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog
         }
 
+        /** Builds and displays the [TextStudioDialog]. */
         fun show(onApplied: ((TextTypographyConfig) -> Unit)? = null): TextStudioDialog {
             val dialog = build()
             if (onApplied != null) {

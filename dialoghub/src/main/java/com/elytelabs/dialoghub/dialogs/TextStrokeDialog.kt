@@ -14,10 +14,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ColorSwatchAdapter
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.models.TextStrokeConfig
 import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -29,8 +31,9 @@ class TextStrokeDialog(private val context: Context) {
 
     private var currentConfig: TextStrokeConfig = TextStrokeConfig()
     private var previewSampleText: String? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var strokeListener: TextStrokeListener? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var lockedItemClickListener: ((LockableItem.Color, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
 
     fun interface TextStrokeListener {
@@ -39,7 +42,10 @@ class TextStrokeDialog(private val context: Context) {
 
     fun setConfig(config: TextStrokeConfig) = apply { this.currentConfig = config }
     fun setPreviewText(text: String?) = apply { this.previewSampleText = text }
-    fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+    fun setLockProvider(provider: ItemLockProvider?) = apply { this.lockProvider = provider }
+    fun setOnLockedItemClickListener(listener: (LockableItem.Color, unlock: () -> Unit) -> Unit) = apply {
+        this.lockedItemClickListener = listener
+    }
     fun setStrokeListener(listener: TextStrokeListener) = apply { this.strokeListener = listener }
     fun setStrokeListener(listener: (TextStrokeConfig) -> Unit) = apply {
         this.strokeListener = TextStrokeListener { listener(it) }
@@ -49,12 +55,10 @@ class TextStrokeDialog(private val context: Context) {
     fun show(
         initialConfig: TextStrokeConfig = this.currentConfig,
         previewText: String? = null,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onStrokeChanged: (config: TextStrokeConfig) -> Unit
     ) {
         this.currentConfig = initialConfig
         if (previewText != null) this.previewSampleText = previewText
-        this.presentationStyle = presentationStyle
         this.strokeListener = TextStrokeListener { onStrokeChanged(it) }
         showTextStrokeDialog()
     }
@@ -87,7 +91,6 @@ class TextStrokeDialog(private val context: Context) {
         val tvLivePreview = dialogView.findViewById<TextView>(R.id.tvLivePreview)
         val tvStrokeWidthValue = dialogView.findViewById<TextView>(R.id.tvStrokeWidthValue)
         val seekBarStrokeWidth = dialogView.findViewById<SeekBar>(R.id.seekBarStrokeWidth)
-        val btnApply = dialogView.findViewById<Button>(R.id.btnApplyStroke)
         val rvStrokeColors = dialogView.findViewById<RecyclerView>(R.id.rvStrokeColors)
 
         if (!previewSampleText.isNullOrEmpty()) {
@@ -127,6 +130,10 @@ class TextStrokeDialog(private val context: Context) {
         val colorSwatchAdapter = ColorSwatchAdapter(includeNoneOption = false)
         rvStrokeColors.adapter = colorSwatchAdapter
         colorSwatchAdapter.setColors(ColorPalettes.ALL_CURATED)
+        colorSwatchAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            colorSwatchAdapter.setOnLockedItemClickListener(listener)
+        }
         colorSwatchAdapter.setSelectedColor(currentConfig.strokeColor)
 
         colorSwatchAdapter.setOnSwatchClickListener { color, _ ->
@@ -171,24 +178,27 @@ class TextStrokeDialog(private val context: Context) {
         chipDark?.setOnClickListener { selectChip(chipDark, ColorPalettes.MELANCHOLY_DARK) }
         chipVintage?.setOnClickListener { selectChip(chipVintage, ColorPalettes.VINTAGE_EARTHY) }
 
-        btnApply.setOnClickListener {
-            strokeListener?.onStrokeChanged(currentConfig)
-            bottomSheet.dismiss()
-        }
-
         bottomSheet.show()
     }
 
     class Builder(private val context: Context) {
         private var config = TextStrokeConfig()
         private var previewText: String? = null
-        private var presentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: TextStrokeListener? = null
+        private var lockProvider: ItemLockProvider? = null
+        private var lockedItemClickListener: ((LockableItem.Color, unlock: () -> Unit) -> Unit)? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setConfig(config: TextStrokeConfig) = apply { this.config = config }
         fun setPreviewText(text: String?) = apply { this.previewText = text }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+        fun setLockProvider(provider: ItemLockProvider) = apply { this.lockProvider = provider }
+        fun setLockedColors(vararg colors: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockColors(*colors)
+        }
+        fun setOnLockedItemClicked(listener: (LockableItem.Color, unlock: () -> Unit) -> Unit) = apply {
+            this.lockedItemClickListener = listener
+        }
         fun setOnStrokeChanged(listener: (TextStrokeConfig) -> Unit) = apply {
             this.listener = TextStrokeListener { listener(it) }
         }
@@ -198,7 +208,8 @@ class TextStrokeDialog(private val context: Context) {
             val dialog = TextStrokeDialog(context)
             dialog.setConfig(config)
             dialog.setPreviewText(previewText)
-            dialog.setPresentationStyle(presentationStyle)
+            dialog.setLockProvider(lockProvider)
+            lockedItemClickListener?.let { dialog.setOnLockedItemClickListener(it) }
             listener?.let { dialog.setStrokeListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog

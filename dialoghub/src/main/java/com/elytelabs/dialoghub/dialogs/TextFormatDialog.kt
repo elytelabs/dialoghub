@@ -1,18 +1,14 @@
 package com.elytelabs.dialoghub.dialogs
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.core.graphics.drawable.toDrawable
 import com.elytelabs.dialoghub.R
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -20,7 +16,7 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 
 /**
  * Dialog for adjusting text formatting (size and gravity alignment) with live interactive preview.
- * Supports standard Dialog and BottomSheet presentation styles, fluent Builder, and Kotlin DSL.
+ * Supports fluent Builder and Kotlin DSL.
  */
 class TextFormatDialog(private val context: Context) {
 
@@ -37,7 +33,6 @@ class TextFormatDialog(private val context: Context) {
     private var dismissListener: (() -> Unit)? = null
     private var currentSize: Float = DEFAULT_SIZE_SP
     private var currentAlignment: TextAlignment = TextAlignment.CENTER
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var previewSampleText: String? = null
 
     companion object {
@@ -83,31 +78,21 @@ class TextFormatDialog(private val context: Context) {
     }
 
     /**
-     * Configures presentation mode (Standard Dialog or BottomSheet).
-     */
-    fun setPresentationStyle(style: PresentationStyle) {
-        this.presentationStyle = style
-    }
-
-    /**
      * Shows the text format dialog using Kotlin lambda callbacks.
      *
      * @param initialSizeSp Current font size in SP (default: 20sp).
      * @param initialAlignment Current text alignment (default: CENTER).
      * @param previewText Optional custom sample text for the live preview box.
-     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
      * @param onFormatChanged Callback triggered when user updates text size or alignment.
      */
     fun show(
         initialSizeSp: Float = DEFAULT_SIZE_SP,
         initialAlignment: TextAlignment = TextAlignment.CENTER,
         previewText: String? = null,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onFormatChanged: (textSizeSp: Float, alignment: TextAlignment) -> Unit
     ) {
         this.currentSize = initialSizeSp.coerceIn(MIN_SIZE_SP, MAX_SIZE_SP)
         this.currentAlignment = initialAlignment
-        this.presentationStyle = presentationStyle
         if (previewText != null) {
             this.previewSampleText = previewText
         }
@@ -209,14 +194,12 @@ class TextFormatDialog(private val context: Context) {
         private var initialSizeSp: Float = DEFAULT_SIZE_SP
         private var initialAlignment: TextAlignment = TextAlignment.CENTER
         private var previewSampleText: String? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: TextFormatListener? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setTextSize(sizeSp: Float) = apply { this.initialSizeSp = sizeSp }
         fun setAlignment(alignment: TextAlignment) = apply { this.initialAlignment = alignment }
         fun setPreviewText(text: String?) = apply { this.previewSampleText = text }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
         fun setOnFormatChanged(listener: (Float, TextAlignment) -> Unit) = apply {
             this.listener = TextFormatListener { size, align -> listener(size, align) }
         }
@@ -228,7 +211,6 @@ class TextFormatDialog(private val context: Context) {
             dialog.setInitialTextSize(initialSizeSp)
             dialog.setInitialAlignment(initialAlignment)
             dialog.setPreviewText(previewSampleText)
-            dialog.setPresentationStyle(presentationStyle)
             listener?.let { dialog.setTextFormatListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog

@@ -1,35 +1,33 @@
 package com.elytelabs.dialoghub.dialogs
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.TextView
-import androidx.core.graphics.drawable.toDrawable
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.FontStyleAdapter
-import com.elytelabs.dialoghub.models.PresentationStyle
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
 /**
  * Dialog for selecting fonts from app font resources with custom script preview text.
- * Supports standard Dialog and BottomSheet presentation modes, fluent Builder, and Kotlin DSL.
+ * Supports lockable items (IAP/Rewarded Ads), fluent Builder, and Kotlin DSL.
  */
 class FontStyleDialog(private val context: Context) {
 
     private var fonts: List<Int> = emptyList()
     private var previewText: String? = null
     private var selectedFontResId: Int? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var fontPickerListener: FontPickerListener? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var lockedItemClickListener: ((LockableItem.Font, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
 
     /**
@@ -75,26 +73,26 @@ class FontStyleDialog(private val context: Context) {
     }
 
     /**
-     * Configures presentation mode (Standard Dialog or BottomSheet).
+     * Sets monetization item lock provider.
      */
-    fun setPresentationStyle(style: PresentationStyle) {
-        this.presentationStyle = style
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+    }
+
+    /**
+     * Sets click listener for locked font items.
+     */
+    fun setOnLockedItemClickListener(listener: (LockableItem.Font, unlock: () -> Unit) -> Unit) {
+        this.lockedItemClickListener = listener
     }
 
     /**
      * Convenience method to show the font style dialog using a Kotlin lambda callback.
-     *
-     * @param fonts Optional list of font resource IDs.
-     * @param previewText Optional custom preview text (e.g., "اردو شاعری" or "Custom Preview").
-     * @param selectedFontResId Optional resource ID of the currently selected font.
-     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
-     * @param onFontSelected Lambda invoked with the selected font resource ID.
      */
     fun show(
         fonts: List<Int>? = null,
         previewText: String? = null,
         selectedFontResId: Int? = null,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onFontSelected: (fontResId: Int) -> Unit
     ) {
         if (fonts != null) {
@@ -106,7 +104,6 @@ class FontStyleDialog(private val context: Context) {
         if (selectedFontResId != null) {
             this.selectedFontResId = selectedFontResId
         }
-        this.presentationStyle = presentationStyle
         this.fontPickerListener = FontPickerListener { font -> onFontSelected(font) }
         showFontSelectionDialog()
     }
@@ -152,6 +149,11 @@ class FontStyleDialog(private val context: Context) {
             bottomSheet.dismiss()
         }
 
+        adapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            adapter.setOnLockedItemClickListener(listener)
+        }
+
         adapter.setFonts(fonts)
         adapter.setPreviewText(previewText)
         adapter.setSelectedFont(selectedFontResId)
@@ -166,14 +168,27 @@ class FontStyleDialog(private val context: Context) {
         private var fonts: List<Int> = emptyList()
         private var previewText: String? = null
         private var selectedFontResId: Int? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: FontPickerListener? = null
+        private var lockProvider: ItemLockProvider? = null
+        private var lockedItemClickListener: ((LockableItem.Font, unlock: () -> Unit) -> Unit)? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setFonts(fonts: List<Int>) = apply { this.fonts = fonts }
+        fun setFonts(vararg fonts: Int) = apply { this.fonts = fonts.toList() }
         fun setPreviewText(text: String?) = apply { this.previewText = text }
         fun setSelectedFont(fontResId: Int?) = apply { this.selectedFontResId = fontResId }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+        fun setLockProvider(provider: ItemLockProvider) = apply { this.lockProvider = provider }
+        fun setLockedFonts(vararg fontResIds: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockFonts(*fontResIds)
+        }
+        fun setLockedFonts(fontResIds: Collection<Int>) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockFonts(fontResIds)
+        }
+        fun setOnLockedItemClicked(listener: (LockableItem.Font, unlock: () -> Unit) -> Unit) = apply {
+            this.lockedItemClickListener = listener
+        }
         fun setOnFontSelected(listener: (Int) -> Unit) = apply { this.listener = FontPickerListener { listener(it) } }
         fun setOnFontSelected(listener: FontPickerListener) = apply { this.listener = listener }
         fun setOnDismiss(listener: () -> Unit) = apply { this.dismissListener = listener }
@@ -183,7 +198,8 @@ class FontStyleDialog(private val context: Context) {
             dialog.setFontsList(fonts)
             dialog.setPreviewText(previewText)
             dialog.setSelectedFont(selectedFontResId)
-            dialog.setPresentationStyle(presentationStyle)
+            dialog.setLockProvider(lockProvider)
+            lockedItemClickListener?.let { dialog.setOnLockedItemClickListener(it) }
             listener?.let { dialog.setFontSelectedListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog

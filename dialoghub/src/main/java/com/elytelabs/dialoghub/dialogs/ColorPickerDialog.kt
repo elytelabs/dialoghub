@@ -20,25 +20,29 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ColorAdapter
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.toolbox.ColorGenerator
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+
 /**
  * Dialog for selecting colors from a palette with live transparency slider across all swatches,
  * real-time preview, and custom hex code input/copying.
- * Supports both standard Dialog and BottomSheet presentation styles, fluent Builder, and Kotlin DSL.
+ * Supports monetization locking (IAP/Rewarded Ads), fluent Builder, and Kotlin DSL.
  */
 class ColorPickerDialog(private val context: Context) {
 
     private var customColors: List<Int>? = null
     private var selectedColor: Int? = null
     private var currentAlpha: Int = 255
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var colorPickerListener: ColorPickerListener? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
 
     companion object {
@@ -82,6 +86,20 @@ class ColorPickerDialog(private val context: Context) {
     }
 
     /**
+     * Sets monetization item lock provider.
+     */
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+    }
+
+    /**
+     * Sets click listener for locked color items.
+     */
+    fun setOnLockedItemClickListener(listener: (LockableItem, unlock: () -> Unit) -> Unit) {
+        this.lockedItemClickListener = listener
+    }
+
+    /**
      * Sets the initial alpha transparency (30 to 255).
      */
     fun setInitialTransparency(transparency: Int) {
@@ -89,26 +107,12 @@ class ColorPickerDialog(private val context: Context) {
     }
 
     /**
-     * Configures presentation mode (Standard Dialog or BottomSheet).
-     */
-    fun setPresentationStyle(style: PresentationStyle) {
-        this.presentationStyle = style
-    }
-
-    /**
      * Convenience method to show the color picker dialog using a Kotlin lambda callback.
-     *
-     * @param customColors Optional list of custom color integers.
-     * @param selectedColor Optional color integer currently active.
-     * @param initialTransparency Initial alpha transparency (30 to 255, default: 255).
-     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
-     * @param onColorSelected Lambda invoked when a color is changed/applied.
      */
     fun show(
         customColors: List<Int>? = null,
         selectedColor: Int? = null,
         initialTransparency: Int = 255,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onColorSelected: (color: Int) -> Unit
     ) {
         if (customColors != null) {
@@ -118,7 +122,6 @@ class ColorPickerDialog(private val context: Context) {
             this.selectedColor = selectedColor
         }
         this.currentAlpha = initialTransparency.coerceIn(MIN_ALPHA, MAX_ALPHA)
-        this.presentationStyle = presentationStyle
         this.colorPickerListener = ColorPickerListener { color -> onColorSelected(color) }
         showColorPickerDialog()
     }
@@ -156,7 +159,6 @@ class ColorPickerDialog(private val context: Context) {
         val tvHexCode = dialogView.findViewById<TextView>(R.id.tvHexCode)
         val tvOpacityValue = dialogView.findViewById<TextView>(R.id.tvOpacityValue)
         val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
-        val btnApply = dialogView.findViewById<Button>(R.id.btnApplyColor)
 
         recyclerView.layoutManager = GridLayoutManager(themedContext, 5)
         val adapter = ColorAdapter()
@@ -164,6 +166,13 @@ class ColorPickerDialog(private val context: Context) {
 
         btnClose?.setOnClickListener {
             bottomSheet.dismiss()
+        }
+
+        adapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            adapter.setOnLockedItemClickListener { lockedColor, unlock ->
+                listener(lockedColor, unlock)
+            }
         }
 
         val palette = customColors ?: ColorGenerator.getColorList()
@@ -227,7 +236,7 @@ class ColorPickerDialog(private val context: Context) {
         updatePreview()
 
         // Tap Hex code badge to open custom Hex dialog
-        tvHexCode.setOnClickListener {
+        fun openHexInput() {
             showHexInputDialog(getCurrentColorWithAlpha()) { newColor ->
                 val alpha = Color.alpha(newColor)
                 if (alpha >= MIN_ALPHA) {
@@ -240,6 +249,17 @@ class ColorPickerDialog(private val context: Context) {
                 updatePreview()
                 val finalColor = getCurrentColorWithAlpha()
                 colorPickerListener?.onColorSelected(finalColor)
+            }
+        }
+
+        tvHexCode.setOnClickListener {
+            val isHexLocked = lockProvider?.isHexInputLocked() == true
+            if (isHexLocked) {
+                lockedItemClickListener?.invoke(LockableItem.CustomHexInput) {
+                    openHexInput()
+                }
+            } else {
+                openHexInput()
             }
         }
 
@@ -266,12 +286,6 @@ class ColorPickerDialog(private val context: Context) {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
-        btnApply.setOnClickListener {
-            val colorWithAlpha = getCurrentColorWithAlpha()
-            colorPickerListener?.onColorSelected(colorWithAlpha)
-            bottomSheet.dismiss()
-        }
 
         bottomSheet.show()
     }
@@ -323,14 +337,31 @@ class ColorPickerDialog(private val context: Context) {
         private var customColors: List<Int>? = null
         private var selectedColor: Int? = null
         private var initialTransparency: Int = 255
-        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+        private var lockProvider: ItemLockProvider? = null
+        private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
         private var listener: ColorPickerListener? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setCustomColors(colors: List<Int>) = apply { this.customColors = colors }
+        fun setCustomColors(vararg colors: Int) = apply { this.customColors = colors.toList() }
         fun setSelectedColor(color: Int?) = apply { this.selectedColor = color }
         fun setInitialTransparency(alpha: Int) = apply { this.initialTransparency = alpha }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+        fun setLockProvider(provider: ItemLockProvider) = apply { this.lockProvider = provider }
+        fun setLockedColors(vararg colors: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockColors(*colors)
+        }
+        fun setLockedColors(colors: Collection<Int>) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockColors(colors)
+        }
+        fun setLockHexInput(lock: Boolean = true) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockHexInput(lock)
+        }
+        fun setOnLockedItemClicked(listener: (LockableItem, unlock: () -> Unit) -> Unit) = apply {
+            this.lockedItemClickListener = listener
+        }
         fun setOnColorSelected(listener: (Int) -> Unit) = apply { this.listener = ColorPickerListener { listener(it) } }
         fun setOnColorSelected(listener: ColorPickerListener) = apply { this.listener = listener }
         fun setOnDismiss(listener: () -> Unit) = apply { this.dismissListener = listener }
@@ -340,7 +371,8 @@ class ColorPickerDialog(private val context: Context) {
             customColors?.let { dialog.setCustomColors(it) }
             selectedColor?.let { dialog.setSelectedColor(it) }
             dialog.setInitialTransparency(initialTransparency)
-            dialog.setPresentationStyle(presentationStyle)
+            dialog.setLockProvider(lockProvider)
+            lockedItemClickListener?.let { dialog.setOnLockedItemClickListener(it) }
             listener?.let { dialog.setColorSelectedListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog

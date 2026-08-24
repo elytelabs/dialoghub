@@ -1,46 +1,81 @@
 package com.elytelabs.dialoghub
 
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
-import android.widget.RadioGroup
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.ContextThemeWrapper
-import androidx.core.content.res.ResourcesCompat
+import androidx.cardview.widget.CardView
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.elytelabs.dialoghub.coroutines.*
 import com.elytelabs.dialoghub.demo.R
-import com.elytelabs.dialoghub.dialogs.*
-import com.elytelabs.dialoghub.dsl.*
-import com.elytelabs.dialoghub.models.*
-import kotlinx.coroutines.launch
+import com.elytelabs.dialoghub.dialogs.TextFormatDialog
+import com.elytelabs.dialoghub.dsl.showColorPickerDialog
+import com.elytelabs.dialoghub.dsl.showFontStyleDialog
+import com.elytelabs.dialoghub.dsl.showImageSelectorDialog
+import com.elytelabs.dialoghub.dsl.showTextEffectsDialog
+import com.elytelabs.dialoghub.dsl.showTextFormatDialog
+import com.elytelabs.dialoghub.dsl.showTextHighlightDialog
+import com.elytelabs.dialoghub.dsl.showTextStrokeDialog
+import com.elytelabs.dialoghub.dsl.showTextStudioDialog
+import com.elytelabs.dialoghub.models.TextTypographyConfig
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+import com.elytelabs.dialoghub.monetization.UsageQuotaManager
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var rootLayout: RelativeLayout
+    private lateinit var previewCard: CardView
+    private lateinit var ivMainPreviewBg: ImageView
     private lateinit var textView: TextView
-    private lateinit var rgThemeMode: RadioGroup
-    private lateinit var rgInvocationMode: RadioGroup
-    private lateinit var tvThemeStatus: TextView
+    private lateinit var tvQuotaStatus: TextView
+    private lateinit var tvProBadge: TextView
+    private lateinit var btnSimulateRewardedAd: Button
+    private lateinit var btnTogglePro: Button
+
+    private lateinit var quotaManager: UsageQuotaManager
+    private val lockProvider = DefaultItemLockProvider()
 
     private var currentBackgroundRes: Int? = null
-    private var currentFontRes: Int? = null
     private var currentColor: Int? = null
-    private var currentTextSize: Float = 20f
-    private var currentAlignment: TextFormatDialog.TextAlignment = TextFormatDialog.TextAlignment.CENTER
-    private var currentEffectsConfig = TextEffectConfig()
+
+    private var currentTypography = TextTypographyConfig(
+        textColor = Color.WHITE,
+        textSizeSp = 18f,
+        alignment = TextFormatDialog.TextAlignment.CENTER
+    )
+
+    private fun updateActiveBackground(resId: Int? = null, color: Int? = null, drawable: Drawable? = null) {
+        currentBackgroundRes = resId
+        currentColor = color
+
+        if (drawable != null) {
+            ivMainPreviewBg.setImageDrawable(drawable)
+            ivMainPreviewBg.visibility = View.VISIBLE
+            rootLayout.background = drawable
+        } else if (resId != null) {
+            ivMainPreviewBg.setImageResource(resId)
+            ivMainPreviewBg.visibility = View.VISIBLE
+            rootLayout.setBackgroundResource(resId)
+        } else if (color != null) {
+            ivMainPreviewBg.visibility = View.GONE
+            previewCard.setCardBackgroundColor(color)
+            rootLayout.background = null
+            rootLayout.setBackgroundColor(color)
+        }
+    }
 
     // System gallery picker launcher
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -49,8 +84,7 @@ class MainActivity : AppCompatActivity() {
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     val bitmap = BitmapFactory.decodeStream(inputStream)
                     if (bitmap != null) {
-                        rootLayout.background = bitmap.toDrawable(resources)
-                        currentBackgroundRes = null
+                        updateActiveBackground(drawable = bitmap.toDrawable(resources))
                         Toast.makeText(this, "Gallery photo applied as background!", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -60,16 +94,89 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Resolves the active context to demonstrate DialogHub's dual support:
-     * - Material Theme Context: Inherits host app brand colors and Material3 styling directly.
-     * - Legacy AppCompat Context: Simulates an AppCompat host activity; DialogThemeHelper auto-wraps it safely.
-     */
-    private fun getActiveContext(): Context {
-        return if (rgThemeMode.checkedRadioButtonId == R.id.rbAppCompat) {
-            ContextThemeWrapper(this, R.style.Theme_DialogHub_AppCompatTest)
+    private fun updateQuotaUI() {
+        if (quotaManager.isProUser()) {
+            tvQuotaStatus.text = "VIP PRO Status: Unlimited Free Access!"
+            tvProBadge.text = "👑 PRO VIP"
+            tvProBadge.setBackgroundColor(Color.parseColor("#10B981"))
+        } else if (lockProvider.isPassActive()) {
+            val remaining = lockProvider.getRemainingPassFormatted()
+            tvQuotaStatus.text = "12-Hour VIP Pass Active: $remaining left"
+            tvProBadge.text = "⏱ 12H PASS"
+            tvProBadge.setBackgroundColor(Color.parseColor("#F59E0B"))
         } else {
-            this
+            val remaining = quotaManager.getRemainingEdits()
+            tvQuotaStatus.text = "Daily Free Quota: $remaining edits left"
+            tvProBadge.text = "FREE TIER"
+            tvProBadge.setBackgroundColor(Color.parseColor("#3B82F6"))
+        }
+    }
+
+    private fun setupLockProvider() {
+        lockProvider.attachTimedPass(this)
+        if (quotaManager.isProUser()) {
+            lockProvider.unlockAll()
+        } else {
+            // Lock VIP fonts
+            lockProvider.lockFonts(R.font.righteous, R.font.sofadi_one)
+            // Lock VIP backgrounds
+            lockProvider.lockBackgrounds(R.drawable.bg5)
+        }
+    }
+
+    private fun handleLockedItem(item: LockableItem, onUnlocked: () -> Unit) {
+        val itemName = when (item) {
+            is LockableItem.Font -> "VIP Font"
+            is LockableItem.Background -> "VIP Wallpaper"
+            is LockableItem.Color -> "VIP Color"
+            is LockableItem.StudioFeatureTab -> "Premium Studio Tool (${item.tab.name})"
+            is LockableItem.GalleryPicker -> "Gallery Import"
+            is LockableItem.CustomHexInput -> "Custom Hex Code"
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("🔒 Unlock $itemName")
+            .setMessage("Watch a short video ad to unlock ALL VIP features, fonts, and tools for 12 HOURS!")
+            .setPositiveButton("📺 Watch Video (12h Pass)") { _, _ ->
+                lockProvider.grantTimedPass(hours = 12)
+                quotaManager.addBonusEdits(5)
+                updateQuotaUI()
+                onUnlocked()
+                Toast.makeText(this, "🎉 12-Hour VIP Pass Activated! All features unlocked.", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("👑 Go Pro") { _, _ ->
+                quotaManager.setProUser(true)
+                setupLockProvider()
+                updateQuotaUI()
+                onUnlocked()
+                Toast.makeText(this, "🎉 VIP PRO Activated! All items unlocked permanently.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun checkQuotaBeforeEdit(onProceed: () -> Unit) {
+        if (quotaManager.isProUser() || lockProvider.isPassActive() || quotaManager.consumeEdit()) {
+            updateQuotaUI()
+            onProceed()
+        } else {
+            AlertDialog.Builder(this)
+                .setTitle("⚠️ Daily Limit Reached")
+                .setMessage("You've reached your free daily quota of 3 edits. Watch a short video to activate a 12-Hour VIP Pass!")
+                .setPositiveButton("📺 Watch Video (12h Pass)") { _, _ ->
+                    lockProvider.grantTimedPass(hours = 12)
+                    quotaManager.addBonusEdits(5)
+                    updateQuotaUI()
+                    onProceed()
+                }
+                .setNeutralButton("👑 Go PRO") { _, _ ->
+                    quotaManager.setProUser(true)
+                    setupLockProvider()
+                    updateQuotaUI()
+                    onProceed()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 
@@ -78,11 +185,16 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
+        quotaManager = UsageQuotaManager(this)
+
         rootLayout = findViewById(R.id.rootLayout)
+        previewCard = findViewById(R.id.previewCard)
+        ivMainPreviewBg = findViewById(R.id.ivMainPreviewBg)
         textView = findViewById(R.id.textView)
-        rgThemeMode = findViewById(R.id.rgThemeMode)
-        rgInvocationMode = findViewById(R.id.rgInvocationMode)
-        tvThemeStatus = findViewById(R.id.tvThemeStatus)
+        tvQuotaStatus = findViewById(R.id.tvQuotaStatus)
+        tvProBadge = findViewById(R.id.tvProBadge)
+        btnSimulateRewardedAd = findViewById(R.id.btnSimulateRewardedAd)
+        btnTogglePro = findViewById(R.id.btnTogglePro)
 
         ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -90,15 +202,28 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        rgThemeMode.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == R.id.rbAppCompat) {
-                tvThemeStatus.text = "Using: Legacy AppCompat Context (Auto-wrapped by DialogThemeHelper without crashing)"
-                tvThemeStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
-            } else {
-                tvThemeStatus.text = "Using: Material3 Theme (Direct inheritance of host brand colors)"
-                tvThemeStatus.setTextColor(getColor(android.R.color.holo_green_dark))
-            }
+        setupLockProvider()
+        updateQuotaUI()
+
+        btnSimulateRewardedAd.setOnClickListener {
+            lockProvider.grantTimedPass(hours = 12)
+            val updated = quotaManager.addBonusEdits(5)
+            updateQuotaUI()
+            Toast.makeText(this, "📺 Ad completed! 12-Hour VIP Pass Active & +5 Edits added!", Toast.LENGTH_SHORT).show()
         }
+
+        btnTogglePro.setOnClickListener {
+            val newProStatus = !quotaManager.isProUser()
+            quotaManager.setProUser(newProStatus)
+            setupLockProvider()
+            updateQuotaUI()
+            val msg = if (newProStatus) "👑 VIP PRO Enabled! Unlimited edits & unlocked items." else "Free tier active."
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Initialize active background and typography
+        updateActiveBackground(resId = R.drawable.bg25)
+        currentTypography.applyTo(textView)
 
         val backgrounds = listOf(
             R.drawable.bg11,
@@ -132,54 +257,34 @@ class MainActivity : AppCompatActivity() {
         val btnColorSelector: Button = findViewById(R.id.btnColorSelector)
         val btnFormatSelector: Button = findViewById(R.id.btnFormatSelector)
         val btnEffectsSelector: Button = findViewById(R.id.btnEffectsSelector)
+        val btnStrokeSelector: Button = findViewById(R.id.btnStrokeSelector)
+        val btnHighlightSelector: Button = findViewById(R.id.btnHighlightSelector)
         val btnTextStudio: Button = findViewById(R.id.btnTextStudio)
 
-        //  ALL-IN-ONE TEXT STUDIO (with real-time live preview)
+        fun syncTypography(config: TextTypographyConfig) {
+            currentTypography = config
+            config.applyTo(textView)
+        }
+
+        // ⭐ ALL-IN-ONE TEXT STUDIO
         btnTextStudio.setOnClickListener {
-            val ctx = getActiveContext()
-
-            val currentTypography = TextTypographyConfig(
-                fontResId = currentFontRes,
-                textColor = currentColor ?: Color.WHITE,
-                textSizeSp = currentTextSize,
-                alignment = currentAlignment,
-                effectConfig = currentEffectsConfig
-            )
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val result = ctx.awaitTextStudio(
-                            initialConfig = currentTypography,
-                            previewText = textView.text.toString(),
-                            fonts = fonts
-                        )
-                        result.applyTo(textView)
+            checkQuotaBeforeEdit {
+                showTextStudioDialog {
+                    setConfig(currentTypography)
+                    setPreviewText(textView.text.toString())
+                    setFonts(fonts)
+                    setBackgroundDrawable(rootLayout.background)
+                    setBackgroundRes(currentBackgroundRes)
+                    setBackgroundColor(currentColor)
+                    setLockProvider(lockProvider)
+                    setOnLockedItemClicked { item, onUnlocked ->
+                        handleLockedItem(item, onUnlocked)
                     }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showTextStudioDialog {
-                        setConfig(currentTypography)
-                        setPreviewText(textView.text.toString())
-                        setFonts(fonts)
-                        setOnLivePreviewListener { liveConfig ->
-                            liveConfig.applyTo(textView)
-                        }
-                        setOnTypographyApplied { applied ->
-                            applied.applyTo(textView)
-                        }
+                    setOnLivePreviewListener { liveConfig ->
+                        syncTypography(liveConfig)
                     }
-                }
-                else -> {
-                    TextStudioDialog(ctx).show(
-                        initialConfig = currentTypography,
-                        previewText = textView.text.toString(),
-                        fonts = fonts,
-                        onLivePreview = { liveConfig ->
-                            liveConfig.applyTo(textView)
-                        }
-                    ) { applied ->
-                        applied.applyTo(textView)
+                    setOnTypographyApplied { applied ->
+                        syncTypography(applied)
                     }
                 }
             }
@@ -187,96 +292,38 @@ class MainActivity : AppCompatActivity() {
 
         // 1. Background Image / Gallery / Color Selector
         btnImageSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        when (val result = ctx.awaitBackground(backgrounds, currentBackgroundRes, true)) {
-                            is SelectedBackground.Image -> {
-                                currentBackgroundRes = result.drawableResId
-                                rootLayout.setBackgroundResource(result.drawableResId)
-                            }
-                            is SelectedBackground.Color -> {
-                                currentColor = result.colorInt
-                                rootLayout.setBackgroundColor(result.colorInt)
-                            }
-                            is SelectedBackground.GalleryRequested -> {
-                                galleryLauncher.launch("image/*")
-                            }
-                            null -> {} // Dismissed
-                        }
+            checkQuotaBeforeEdit {
+                showImageSelectorDialog {
+                    setBackgrounds(backgrounds)
+                    setSelectedBackground(currentBackgroundRes)
+                    setEnableGalleryPick(true) { galleryLauncher.launch("image/*") }
+                    setLockProvider(lockProvider)
+                    setOnLockedItemClicked { item, onUnlocked ->
+                        handleLockedItem(item, onUnlocked)
                     }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showImageSelectorDialog {
-                        setBackgrounds(backgrounds)
-                        setSelectedBackground(currentBackgroundRes)
-                        setEnableGalleryPick(true) { galleryLauncher.launch("image/*") }
-                        setOnImageSelected { resId ->
-                            currentBackgroundRes = resId
-                            rootLayout.setBackgroundResource(resId)
-                        }
-                        setOnColorSelected { color ->
-                            currentColor = color
-                            rootLayout.setBackgroundColor(color)
-                        }
+                    setOnImageSelected { resId ->
+                        updateActiveBackground(resId = resId)
                     }
-                }
-                else -> {
-                    ImageSelectorDialog(ctx).show(
-                        backgrounds = backgrounds,
-                        selectedBackgroundResId = currentBackgroundRes,
-                        onPickFromGallery = { galleryLauncher.launch("image/*") },
-                        onImageSelected = { resId ->
-                            currentBackgroundRes = resId
-                            rootLayout.setBackgroundResource(resId)
-                        },
-                        onColorSelected = { color ->
-                            currentColor = color
-                            rootLayout.setBackgroundColor(color)
-                        }
-                    )
+                    setOnColorSelected { color ->
+                        updateActiveBackground(color = color)
+                    }
                 }
             }
         }
 
         // 2. Font Style Selector with Custom Preview Text
         btnFontSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val fontRes = ctx.awaitFont(fonts, "Sample / اردو", currentFontRes)
-                        if (fontRes != null) {
-                            currentFontRes = fontRes
-                            textView.typeface = ResourcesCompat.getFont(this@MainActivity, fontRes)
-                            currentEffectsConfig.applyTo(textView)
-                        }
+            checkQuotaBeforeEdit {
+                showFontStyleDialog {
+                    setFonts(fonts)
+                    setPreviewText("Sample / اردو")
+                    setSelectedFont(currentTypography.fontResId)
+                    setLockProvider(lockProvider)
+                    setOnLockedItemClicked { item, onUnlocked ->
+                        handleLockedItem(item, onUnlocked)
                     }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showFontStyleDialog {
-                        setFonts(fonts)
-                        setPreviewText("Sample / اردو")
-                        setSelectedFont(currentFontRes)
-                        setOnFontSelected { fontResId ->
-                            currentFontRes = fontResId
-                            textView.typeface = ResourcesCompat.getFont(this@MainActivity, fontResId)
-                            currentEffectsConfig.applyTo(textView)
-                        }
-                    }
-                }
-                else -> {
-                    FontStyleDialog(ctx).show(
-                        fonts = fonts,
-                        previewText = "Sample / اردو",
-                        selectedFontResId = currentFontRes
-                    ) { fontResId ->
-                        currentFontRes = fontResId
-                        textView.typeface = ResourcesCompat.getFont(this, fontResId)
-                        currentEffectsConfig.applyTo(textView)
+                    setOnFontSelected { fontResId ->
+                        syncTypography(currentTypography.copy(fontResId = fontResId))
                     }
                 }
             }
@@ -284,33 +331,15 @@ class MainActivity : AppCompatActivity() {
 
         // 3. Color Picker with Transparency & Live Preview
         btnColorSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val color = ctx.awaitColor(selectedColor = currentColor)
-                        if (color != null) {
-                            currentColor = color
-                            rootLayout.setBackgroundColor(color)
-                        }
+            checkQuotaBeforeEdit {
+                showColorPickerDialog {
+                    setSelectedColor(currentTypography.textColor)
+                    setLockProvider(lockProvider)
+                    setOnLockedItemClicked { item, onUnlocked ->
+                        handleLockedItem(item, onUnlocked)
                     }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showColorPickerDialog {
-                        setSelectedColor(currentColor)
-                        setOnColorSelected { color ->
-                            currentColor = color
-                            rootLayout.setBackgroundColor(color)
-                        }
-                    }
-                }
-                else -> {
-                    ColorPickerDialog(ctx).show(
-                        selectedColor = currentColor
-                    ) { color ->
-                        currentColor = color
-                        rootLayout.setBackgroundColor(color)
+                    setOnColorSelected { color ->
+                        syncTypography(currentTypography.copy(textColor = color))
                     }
                 }
             }
@@ -318,45 +347,13 @@ class MainActivity : AppCompatActivity() {
 
         // 4. Text Format Dialog (Live Preview, Text Size & Alignment)
         btnFormatSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val result = ctx.awaitTextFormat(
-                            initialSizeSp = currentTextSize,
-                            initialAlignment = currentAlignment,
-                            previewText = textView.text.toString()
-                        )
-                        currentTextSize = result.textSizeSp
-                        currentAlignment = result.alignment
-                        textView.textSize = result.textSizeSp
-                        textView.gravity = result.alignment.gravity
-                    }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showTextFormatDialog {
-                        setTextSize(currentTextSize)
-                        setAlignment(currentAlignment)
-                        setPreviewText(textView.text.toString())
-                        setOnFormatChanged { size, alignment ->
-                            currentTextSize = size
-                            currentAlignment = alignment
-                            textView.textSize = size
-                            textView.gravity = alignment.gravity
-                        }
-                    }
-                }
-                else -> {
-                    TextFormatDialog(ctx).show(
-                        initialSizeSp = currentTextSize,
-                        initialAlignment = currentAlignment,
-                        previewText = textView.text.toString()
-                    ) { size, alignment ->
-                        currentTextSize = size
-                        currentAlignment = alignment
-                        textView.textSize = size
-                        textView.gravity = alignment.gravity
+            checkQuotaBeforeEdit {
+                showTextFormatDialog {
+                    setTextSize(currentTypography.textSizeSp)
+                    setAlignment(currentTypography.alignment)
+                    setPreviewText(textView.text.toString())
+                    setOnFormatChanged { size, alignment ->
+                        syncTypography(currentTypography.copy(textSizeSp = size, alignment = alignment))
                     }
                 }
             }
@@ -364,96 +361,38 @@ class MainActivity : AppCompatActivity() {
 
         // 5. Text Effects Dialog (Styles, Drop Shadow, Letter Spacing, Line Spacing)
         btnEffectsSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val config = ctx.awaitTextEffects(
-                            initialConfig = currentEffectsConfig,
-                            previewText = textView.text.toString()
-                        )
-                        currentEffectsConfig = config
-                        currentEffectsConfig.applyTo(textView)
-                    }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showTextEffectsDialog {
-                        setConfig(currentEffectsConfig)
-                        setPreviewText(textView.text.toString())
-                        setOnEffectsChanged { config ->
-                            currentEffectsConfig = config
-                            currentEffectsConfig.applyTo(textView)
-                        }
-                    }
-                }
-                else -> {
-                    TextEffectsDialog(ctx).show(
-                        initialConfig = currentEffectsConfig,
-                        previewText = textView.text.toString()
-                    ) { config ->
-                        currentEffectsConfig = config
-                        currentEffectsConfig.applyTo(textView)
+            checkQuotaBeforeEdit {
+                showTextEffectsDialog {
+                    setConfig(currentTypography.effectConfig)
+                    setPreviewText(textView.text.toString())
+                    setOnEffectsChanged { config ->
+                        syncTypography(currentTypography.copy(effectConfig = config))
                     }
                 }
             }
         }
 
         // 6. Text Stroke & Outline Dialog
-        val btnStrokeSelector = findViewById<Button>(R.id.btnStrokeSelector)
         btnStrokeSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val config = ctx.awaitTextStroke(previewText = textView.text.toString())
-                        config.applyTo(textView)
-                    }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showTextStrokeDialog {
-                        setPreviewText(textView.text.toString())
-                        setOnStrokeChanged { config ->
-                            config.applyTo(textView)
-                        }
-                    }
-                }
-                else -> {
-                    TextStrokeDialog(ctx).show(
-                        previewText = textView.text.toString()
-                    ) { config ->
-                        config.applyTo(textView)
+            checkQuotaBeforeEdit {
+                showTextStrokeDialog {
+                    setConfig(currentTypography.strokeConfig)
+                    setPreviewText(textView.text.toString())
+                    setOnStrokeChanged { config ->
+                        syncTypography(currentTypography.copy(strokeConfig = config))
                     }
                 }
             }
         }
 
-        // 7. Text Background Ribbon / Highlight Dialog
-        val btnHighlightSelector = findViewById<Button>(R.id.btnHighlightSelector)
+        // 7. Text Background Ribbon Dialog
         btnHighlightSelector.setOnClickListener {
-            val ctx = getActiveContext()
-
-            when (rgInvocationMode.checkedRadioButtonId) {
-                R.id.rbModeCoroutine -> {
-                    lifecycleScope.launch {
-                        val config = ctx.awaitTextHighlight(previewText = textView.text.toString())
-                        config.applyTo(textView)
-                    }
-                }
-                R.id.rbModeDsl -> {
-                    ctx.showTextHighlightDialog {
-                        setPreviewText(textView.text.toString())
-                        setOnHighlightChanged { config ->
-                            config.applyTo(textView)
-                        }
-                    }
-                }
-                else -> {
-                    TextHighlightDialog(ctx).show(
-                        previewText = textView.text.toString()
-                    ) { config ->
-                        config.applyTo(textView)
+            checkQuotaBeforeEdit {
+                showTextHighlightDialog {
+                    setConfig(currentTypography.highlightConfig)
+                    setPreviewText(textView.text.toString())
+                    setOnHighlightChanged { config ->
+                        syncTypography(currentTypography.copy(highlightConfig = config))
                     }
                 }
             }

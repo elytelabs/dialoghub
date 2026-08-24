@@ -21,7 +21,7 @@
         android:layout_marginBottom="4dp"
         android:background="@drawable/bg_drag_handle" />
 
-    <!-- Header -->
+    <!-- Header with 1-Tap Reset and Close -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,62 +39,97 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/btnStudioReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?actionBarItemBackground"
+            android:fontFamily="sans-serif-medium"
+            android:paddingStart="10dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp"
+            android:text="Reset"
+            android:textColor="#EF4444"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
         <ImageButton
             android:id="@+id/btnClose"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:layout_marginStart="4dp"
             android:background="?actionBarItemBackground"
             android:contentDescription="Close"
             android:src="@drawable/ic_close" />
     </LinearLayout>
 
-    <!-- Sleek In-Sheet Live Preview Canvas (Optional, default hidden when live sync is on) -->
+    <!-- Sleek In-Sheet Live Preview Canvas (High-Fidelity Wallpaper / Background Canvas) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardStudioPreview"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="76dp"
         android:layout_marginTop="2dp"
         android:layout_marginBottom="8dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:cardBackgroundColor="#0F172A"
         app:cardCornerRadius="14dp"
         app:cardElevation="0dp">
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/bg_preview_canvas"
-            android:paddingStart="14dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="4dp">
+            android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/tvStudioPreview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="2"
-                android:text="Sample Quote / نمونہ کلام"
-                android:textColor="#FFFFFF"
-                android:textDirection="anyRtl"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Canvas Contrast Mode Toggle (Dark Slate / Light Slate / Warm Parchment) -->
+            <!-- Real Wallpaper / Image Background in Preview Canvas -->
             <ImageView
-                android:id="@+id/btnStudioCanvasToggle"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:layout_gravity="top|end"
-                android:background="@drawable/rounded_background"
-                android:backgroundTint="#33FFFFFF"
-                android:contentDescription="Toggle Canvas Contrast"
-                android:padding="5dp"
-                android:src="@drawable/ic_contrast_toggle"
-                app:tint="#FFFFFF" />
+                android:id="@+id/ivStudioPreviewBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <!-- Subtle border canvas overlay -->
+            <View
+                android:id="@+id/viewStudioCanvasOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_preview_canvas" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="14dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="6dp">
+
+                <TextView
+                    android:id="@+id/tvStudioPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="Sample Quote / نمونہ کلام"
+                    android:textColor="#FFFFFF"
+                    android:textDirection="anyRtl"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Canvas Contrast Mode Toggle (Dark Slate / Light Slate / Warm Parchment) -->
+                <ImageView
+                    android:id="@+id/btnStudioCanvasToggle"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#33FFFFFF"
+                    android:contentDescription="Toggle Canvas Contrast"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_contrast_toggle"
+                    app:tint="#FFFFFF" />
+            </FrameLayout>
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 
@@ -527,10 +562,15 @@
                 android:id="@+id/sbStudioTextSize"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
                 android:max="32"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="8"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
 
             <TextView
@@ -582,6 +622,108 @@
                     app:iconGravity="textStart"
                     app:iconPadding="0dp" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <!-- Letter Spacing (Kerning) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Letter Spacing"
+                    android:textColor="#374151"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStudioLetterSpacingVal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#EEEEEE"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="0.00"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/sbStudioLetterSpacing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:max="30"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:progress="0"
+                android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
+                android:thumbTint="?attr/colorPrimary" />
+
+            <!-- Line Spacing (Leading) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Line Spacing"
+                    android:textColor="#374151"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStudioLineSpacingVal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#EEEEEE"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="1.0x"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/sbStudioLineSpacing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:max="20"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:progress="2"
+                android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
+                android:thumbTint="?attr/colorPrimary" />
         </LinearLayout>
 
         <!-- 4. Stroke View -->
@@ -629,10 +771,15 @@
                 android:id="@+id/sbStudioStroke"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
                 android:max="16"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="0"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
 
             <!-- Stroke Color Category Chips -->
@@ -860,10 +1007,15 @@
                 android:id="@+id/sbStudioShadow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
                 android:max="25"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="0"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
 
             <!-- Shadow Color Palette -->
@@ -930,10 +1082,15 @@
                 android:id="@+id/sbStudioRadius"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
                 android:max="32"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="12"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
 
             <!-- Ribbon Color Category Chips -->
@@ -1072,17 +1229,5 @@
                 android:overScrollMode="never" />
         </LinearLayout>
     </FrameLayout>
-
-    <!-- Bottom Action Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnApplyStudio"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="12dp"
-        android:text="Apply Typography"
-        android:textAllCaps="false"
-        android:textSize="15sp"
-        app:cornerRadius="12dp" />
 
 </LinearLayout>

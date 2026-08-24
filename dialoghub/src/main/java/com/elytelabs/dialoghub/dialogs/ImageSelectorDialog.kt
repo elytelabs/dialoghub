@@ -1,35 +1,35 @@
 package com.elytelabs.dialoghub.dialogs
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
-import android.widget.ImageView
-import androidx.core.graphics.drawable.toDrawable
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ImageAdapter
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+
 /**
  * Dialog for selecting background drawable images, custom photos from gallery, or custom colors.
- * Supports standard Dialog and BottomSheet presentation styles, fluent Builder, and Kotlin DSL.
+ * Supports monetization locking (IAP/Rewarded Ads), fluent Builder, and Kotlin DSL.
  */
 class ImageSelectorDialog(private val context: Context) {
 
     private var backgrounds: List<Int> = emptyList()
     private var enableGalleryPick: Boolean = false
     private var selectedBackgroundResId: Int? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var imagePickerListener: ImagePickerListener? = null
     private var galleryClickListener: (() -> Unit)? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
     private val colorPickerDialog = ColorPickerDialog(context)
 
@@ -41,76 +41,45 @@ class ImageSelectorDialog(private val context: Context) {
         fun onColorSelected(color: Int)
     }
 
-    /**
-     * Sets the image picker listener using the traditional interface.
-     */
     fun setImageSelectedListener(listener: ImagePickerListener) {
         this.imagePickerListener = listener
     }
 
-    /**
-     * Sets dismissal listener.
-     */
     fun setOnDismissListener(listener: () -> Unit) {
         this.dismissListener = listener
     }
 
-    /**
-     * Sets the list of background drawable resource IDs.
-     */
     fun setBackgroundsList(backgrounds: List<Int>) {
         this.backgrounds = backgrounds
     }
 
-    /**
-     * Enables or disables the "Pick from Gallery" tile.
-     */
     fun setEnableGalleryPick(enable: Boolean, onGalleryClick: (() -> Unit)? = null) {
         this.enableGalleryPick = enable
         this.galleryClickListener = onGalleryClick
     }
 
-    /**
-     * Sets the initially selected background resource ID for highlighting.
-     */
     fun setSelectedBackground(resId: Int?) {
         this.selectedBackgroundResId = resId
     }
 
-    /**
-     * Configures presentation mode (Standard Dialog or BottomSheet).
-     */
-    fun setPresentationStyle(style: PresentationStyle) {
-        this.presentationStyle = style
-        this.colorPickerDialog.setPresentationStyle(style)
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+        this.colorPickerDialog.setLockProvider(provider)
     }
 
-    /**
-     * Convenience method to show the image selector dialog using Kotlin lambda callbacks.
-     *
-     * @param backgrounds Optional list of drawable resource IDs.
-     * @param selectedBackgroundResId Optional currently selected background resource ID.
-     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
-     * @param onPickFromGallery Optional callback if user clicks the "Pick from Gallery" tile.
-     * @param onImageSelected Callback invoked when a background image is chosen.
-     * @param onColorSelected Callback invoked when a color is chosen from the color picker.
-     */
+    fun setOnLockedItemClickListener(listener: (LockableItem, unlock: () -> Unit) -> Unit) {
+        this.lockedItemClickListener = listener
+    }
+
     fun show(
         backgrounds: List<Int>? = null,
         selectedBackgroundResId: Int? = null,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onPickFromGallery: (() -> Unit)? = null,
         onImageSelected: ((imageResId: Int) -> Unit)? = null,
         onColorSelected: ((color: Int) -> Unit)? = null
     ) {
-        if (backgrounds != null) {
-            this.backgrounds = backgrounds
-        }
-        if (selectedBackgroundResId != null) {
-            this.selectedBackgroundResId = selectedBackgroundResId
-        }
-        this.presentationStyle = presentationStyle
-        this.colorPickerDialog.setPresentationStyle(presentationStyle)
+        if (backgrounds != null) this.backgrounds = backgrounds
+        if (selectedBackgroundResId != null) this.selectedBackgroundResId = selectedBackgroundResId
         if (onPickFromGallery != null) {
             this.enableGalleryPick = true
             this.galleryClickListener = onPickFromGallery
@@ -127,9 +96,6 @@ class ImageSelectorDialog(private val context: Context) {
         showImageSelectionDialog()
     }
 
-    /**
-     * Displays the image and color selection dialog.
-     */
     fun showImageSelectionDialog() {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
             return
@@ -177,61 +143,80 @@ class ImageSelectorDialog(private val context: Context) {
             colorPickerDialog.setColorSelectedListener { color ->
                 imagePickerListener?.onColorSelected(color)
             }
-
             colorPickerDialog.showColorPickerDialog()
             bottomSheet.dismiss()
         }
 
-        adapter.setBackgrounds(backgrounds)
-        adapter.setEnableGalleryPick(enableGalleryPick)
-        adapter.setSelectedBackground(selectedBackgroundResId)
+        adapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            adapter.setOnLockedItemClickListener(listener)
+        }
 
+        adapter.setBackgrounds(backgrounds)
+        adapter.setSelectedBackground(selectedBackgroundResId)
+        adapter.setEnableGalleryPick(enableGalleryPick)
         bottomSheet.show()
     }
 
-    /**
-     * Fluent Builder for [ImageSelectorDialog].
-     */
     class Builder(private val context: Context) {
         private var backgrounds: List<Int> = emptyList()
         private var enableGalleryPick: Boolean = false
         private var selectedBackgroundResId: Int? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
-        private var imagePickerListener: ImagePickerListener? = null
-        private var galleryClickListener: (() -> Unit)? = null
+        private var lockProvider: ItemLockProvider? = null
+        private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
+        private var imageListener: ((Int) -> Unit)? = null
+        private var colorListener: ((Int) -> Unit)? = null
+        private var galleryListener: (() -> Unit)? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setBackgrounds(backgrounds: List<Int>) = apply { this.backgrounds = backgrounds }
+        fun setBackgrounds(vararg backgrounds: Int) = apply { this.backgrounds = backgrounds.toList() }
         fun setSelectedBackground(resId: Int?) = apply { this.selectedBackgroundResId = resId }
         fun setEnableGalleryPick(enable: Boolean, onGalleryClick: (() -> Unit)? = null) = apply {
             this.enableGalleryPick = enable
-            this.galleryClickListener = onGalleryClick
+            this.galleryListener = onGalleryClick
         }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
-        fun setOnImageSelected(listener: (Int) -> Unit) = apply {
-            val prev = this.imagePickerListener
-            this.imagePickerListener = object : ImagePickerListener {
-                override fun onImageSelected(imageResource: Int) = listener(imageResource)
-                override fun onColorSelected(color: Int) { prev?.onColorSelected(color) }
-            }
+        fun setLockProvider(provider: ItemLockProvider) = apply { this.lockProvider = provider }
+        fun setLockedBackgrounds(vararg resIds: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockBackgrounds(*resIds)
         }
-        fun setOnColorSelected(listener: (Int) -> Unit) = apply {
-            val prev = this.imagePickerListener
-            this.imagePickerListener = object : ImagePickerListener {
-                override fun onImageSelected(imageResource: Int) { prev?.onImageSelected(imageResource) }
-                override fun onColorSelected(color: Int) = listener(color)
-            }
+        fun setLockedBackgrounds(resIds: Collection<Int>) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockBackgrounds(resIds)
         }
-        fun setImagePickerListener(listener: ImagePickerListener) = apply { this.imagePickerListener = listener }
+        fun setLockGallery(lock: Boolean = true) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockGallery(lock)
+        }
+        fun setOnLockedItemClicked(listener: (LockableItem, unlock: () -> Unit) -> Unit) = apply {
+            this.lockedItemClickListener = listener
+        }
+        fun setOnImageSelected(listener: (Int) -> Unit) = apply { this.imageListener = listener }
+        fun setOnColorSelected(listener: (Int) -> Unit) = apply { this.colorListener = listener }
+        fun setOnGalleryClick(listener: () -> Unit) = apply {
+            this.enableGalleryPick = true
+            this.galleryListener = listener
+        }
         fun setOnDismiss(listener: () -> Unit) = apply { this.dismissListener = listener }
 
         fun build(): ImageSelectorDialog {
             val dialog = ImageSelectorDialog(context)
             dialog.setBackgroundsList(backgrounds)
             dialog.setSelectedBackground(selectedBackgroundResId)
-            dialog.setEnableGalleryPick(enableGalleryPick, galleryClickListener)
-            dialog.setPresentationStyle(presentationStyle)
-            imagePickerListener?.let { dialog.setImageSelectedListener(it) }
+            dialog.setEnableGalleryPick(enableGalleryPick, galleryListener)
+            dialog.setLockProvider(lockProvider)
+            lockedItemClickListener?.let { dialog.setOnLockedItemClickListener(it) }
+
+            dialog.setImageSelectedListener(object : ImagePickerListener {
+                override fun onImageSelected(imageResource: Int) {
+                    imageListener?.invoke(imageResource)
+                }
+
+                override fun onColorSelected(color: Int) {
+                    colorListener?.invoke(color)
+                }
+            })
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog
         }

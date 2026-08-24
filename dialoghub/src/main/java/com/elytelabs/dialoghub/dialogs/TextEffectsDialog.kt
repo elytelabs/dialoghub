@@ -1,20 +1,15 @@
 package com.elytelabs.dialoghub.dialogs
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import com.elytelabs.dialoghub.R
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.models.TextEffectConfig
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -24,13 +19,12 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 /**
  * Dialog for configuring advanced text effects (styles, drop shadow, letter spacing, line spacing)
  * with live real-time preview.
- * Supports standard Dialog and BottomSheet presentation styles, fluent Builder, and Kotlin DSL.
+ * Supports fluent Builder and Kotlin DSL.
  */
 class TextEffectsDialog(private val context: Context) {
 
     private var currentConfig = TextEffectConfig()
     private var previewSampleText: String? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var effectsListener: TextEffectsListener? = null
     private var dismissListener: (() -> Unit)? = null
 
@@ -64,28 +58,14 @@ class TextEffectsDialog(private val context: Context) {
     }
 
     /**
-     * Configures presentation mode (Standard Dialog or BottomSheet).
-     */
-    fun setPresentationStyle(style: PresentationStyle) {
-        this.presentationStyle = style
-    }
-
-    /**
      * Shows the text effects dialog using Kotlin lambda callbacks.
-     *
-     * @param initialConfig Current text effects configuration.
-     * @param previewText Optional custom sample text for the live preview box.
-     * @param presentationStyle DIALOG or BOTTOM_SHEET (default: DIALOG).
-     * @param onEffectsApplied Callback invoked when effects are updated/applied.
      */
     fun show(
         initialConfig: TextEffectConfig = TextEffectConfig(),
         previewText: String? = null,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onEffectsApplied: (config: TextEffectConfig) -> Unit
     ) {
         this.currentConfig = initialConfig
-        this.presentationStyle = presentationStyle
         if (previewText != null) {
             this.previewSampleText = previewText
         }
@@ -131,7 +111,6 @@ class TextEffectsDialog(private val context: Context) {
         val tvLetterSpacingValue = dialogView.findViewById<TextView>(R.id.tvLetterSpacingValue)
         val seekBarLineSpacing = dialogView.findViewById<SeekBar>(R.id.seekBarLineSpacing)
         val tvLineSpacingValue = dialogView.findViewById<TextView>(R.id.tvLineSpacingValue)
-        val btnApply = dialogView.findViewById<Button>(R.id.btnApplyEffects)
 
         // Shadow color swatches
         val swatchBlack = dialogView.findViewById<CardView>(R.id.swatchShadowBlack)
@@ -241,11 +220,6 @@ class TextEffectsDialog(private val context: Context) {
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
 
-        btnApply.setOnClickListener {
-            effectsListener?.onEffectsChanged(currentConfig)
-            bottomSheet.dismiss()
-        }
-
         bottomSheet.show()
     }
 
@@ -255,13 +229,11 @@ class TextEffectsDialog(private val context: Context) {
     class Builder(private val context: Context) {
         private var config: TextEffectConfig = TextEffectConfig()
         private var previewSampleText: String? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: TextEffectsListener? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setConfig(config: TextEffectConfig) = apply { this.config = config }
         fun setPreviewText(text: String?) = apply { this.previewSampleText = text }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
         fun setOnEffectsChanged(listener: (TextEffectConfig) -> Unit) = apply {
             this.listener = TextEffectsListener { cfg -> listener(cfg) }
         }
@@ -272,7 +244,6 @@ class TextEffectsDialog(private val context: Context) {
             val dialog = TextEffectsDialog(context)
             dialog.setConfig(config)
             dialog.setPreviewText(previewSampleText)
-            dialog.setPresentationStyle(presentationStyle)
             listener?.let { dialog.setTextEffectsListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog

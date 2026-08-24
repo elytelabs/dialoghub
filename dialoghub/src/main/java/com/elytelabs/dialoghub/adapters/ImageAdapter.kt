@@ -13,6 +13,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+
 class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
 
     private var backgrounds: List<Int> = emptyList()
@@ -22,6 +25,8 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
     private var onImageClickListener: ((Int) -> Unit)? = null
     private var onColorPickerListener: (() -> Unit)? = null
     private var onGalleryClickListener: (() -> Unit)? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var onLockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
 
     // Memory cache for decoded thumbnails (max 30 items)
     private val thumbnailCache = LruCache<Int, Bitmap>(30)
@@ -60,8 +65,19 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                 holder.actionTileIcon.setImageResource(R.drawable.ic_tile_gallery)
                 holder.tileLabel.setText(R.string.pick_from_gallery)
                 holder.selectedOverlay.visibility = View.GONE
+
+                val isGalleryLocked = lockProvider?.isGalleryLocked() == true
+                holder.ivImageLockBadge.visibility = if (isGalleryLocked) View.VISIBLE else View.GONE
+
                 holder.itemView.setOnClickListener {
-                    onGalleryClickListener?.invoke()
+                    if (isGalleryLocked) {
+                        onLockedItemClickListener?.invoke(LockableItem.GalleryPicker) {
+                            notifyItemRangeChanged(0, itemCount)
+                            onGalleryClickListener?.invoke()
+                        }
+                    } else {
+                        onGalleryClickListener?.invoke()
+                    }
                 }
             }
             VIEW_TYPE_COLOR_WHEEL -> {
@@ -71,6 +87,8 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                 holder.actionTileIcon.setImageResource(R.drawable.ic_tile_palette)
                 holder.tileLabel.setText(R.string.color_wheel_title)
                 holder.selectedOverlay.visibility = View.GONE
+                holder.ivImageLockBadge.visibility = View.GONE
+
                 holder.itemView.setOnClickListener {
                     onColorPickerListener?.invoke()
                 }
@@ -94,14 +112,25 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                     }
                 }
 
+                val isLocked = lockProvider?.isBackgroundLocked(imageResource) == true
+                holder.ivImageLockBadge.visibility = if (isLocked) View.VISIBLE else View.GONE
+
                 // Selection highlight
-                val isSelected = (selectedBackgroundResId != null && selectedBackgroundResId == imageResource)
+                val isSelected = (!isLocked && selectedBackgroundResId != null && selectedBackgroundResId == imageResource)
                 holder.selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
 
                 holder.itemView.setOnClickListener {
-                    selectedBackgroundResId = imageResource
-                    notifyItemRangeChanged(0, itemCount)
-                    onImageClickListener?.invoke(imageResource)
+                    if (isLocked) {
+                        onLockedItemClickListener?.invoke(LockableItem.Background(imageResource)) {
+                            selectedBackgroundResId = imageResource
+                            notifyItemRangeChanged(0, itemCount)
+                            onImageClickListener?.invoke(imageResource)
+                        }
+                    } else {
+                        selectedBackgroundResId = imageResource
+                        notifyItemRangeChanged(0, itemCount)
+                        onImageClickListener?.invoke(imageResource)
+                    }
                 }
             }
         }
@@ -125,6 +154,15 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
     fun setSelectedBackground(resId: Int?) {
         this.selectedBackgroundResId = resId
         notifyDataSetChanged()
+    }
+
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+        notifyDataSetChanged()
+    }
+
+    fun setOnLockedItemClickListener(listener: (LockableItem, unlock: () -> Unit) -> Unit) {
+        this.onLockedItemClickListener = listener
     }
 
     fun setOnImageClickListener(listener: (Int) -> Unit) {
@@ -193,5 +231,6 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
         val actionTileIcon: ImageView = itemView.findViewById(R.id.actionTileIcon)
         val tileLabel: TextView = itemView.findViewById(R.id.tileLabel)
         val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
+        val ivImageLockBadge: ImageView = itemView.findViewById(R.id.ivImageLockBadge)
     }
 }

@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
@@ -15,8 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ColorSwatchAdapter
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.models.TextHighlightConfig
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
 import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -30,8 +31,9 @@ class TextHighlightDialog(private val context: Context) {
 
     private var currentConfig: TextHighlightConfig = TextHighlightConfig()
     private var previewSampleText: String? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var highlightListener: TextHighlightListener? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var lockedItemClickListener: ((LockableItem.Color, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
 
     fun interface TextHighlightListener {
@@ -40,7 +42,10 @@ class TextHighlightDialog(private val context: Context) {
 
     fun setConfig(config: TextHighlightConfig) = apply { this.currentConfig = config }
     fun setPreviewText(text: String?) = apply { this.previewSampleText = text }
-    fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+    fun setLockProvider(provider: ItemLockProvider?) = apply { this.lockProvider = provider }
+    fun setOnLockedItemClickListener(listener: (LockableItem.Color, unlock: () -> Unit) -> Unit) = apply {
+        this.lockedItemClickListener = listener
+    }
     fun setHighlightListener(listener: TextHighlightListener) = apply { this.highlightListener = listener }
     fun setHighlightListener(listener: (TextHighlightConfig) -> Unit) = apply {
         this.highlightListener = TextHighlightListener { listener(it) }
@@ -50,12 +55,10 @@ class TextHighlightDialog(private val context: Context) {
     fun show(
         initialConfig: TextHighlightConfig = this.currentConfig,
         previewText: String? = null,
-        presentationStyle: PresentationStyle = this.presentationStyle,
         onHighlightChanged: (config: TextHighlightConfig) -> Unit
     ) {
         this.currentConfig = initialConfig
         if (previewText != null) this.previewSampleText = previewText
-        this.presentationStyle = presentationStyle
         this.highlightListener = TextHighlightListener { onHighlightChanged(it) }
         showTextHighlightDialog()
     }
@@ -88,7 +91,6 @@ class TextHighlightDialog(private val context: Context) {
         val tvLivePreview = dialogView.findViewById<TextView>(R.id.tvLivePreview)
         val tvRadiusValue = dialogView.findViewById<TextView>(R.id.tvRadiusValue)
         val seekBarRadius = dialogView.findViewById<SeekBar>(R.id.seekBarRadius)
-        val btnApply = dialogView.findViewById<Button>(R.id.btnApplyHighlight)
         val rvRibbonColors = dialogView.findViewById<RecyclerView>(R.id.rvRibbonColors)
 
         if (!previewSampleText.isNullOrEmpty()) {
@@ -125,6 +127,10 @@ class TextHighlightDialog(private val context: Context) {
         val colorSwatchAdapter = ColorSwatchAdapter(includeNoneOption = true)
         rvRibbonColors.adapter = colorSwatchAdapter
         colorSwatchAdapter.setColors(ColorPalettes.ALL_CURATED)
+        colorSwatchAdapter.setLockProvider(lockProvider)
+        lockedItemClickListener?.let { listener ->
+            colorSwatchAdapter.setOnLockedItemClickListener(listener)
+        }
         colorSwatchAdapter.setSelectedColor(
             if (currentConfig.isEnabled) currentConfig.backgroundColor else null,
             isNone = !currentConfig.isEnabled
@@ -172,24 +178,27 @@ class TextHighlightDialog(private val context: Context) {
         chipDark?.setOnClickListener { selectChip(chipDark, ColorPalettes.MELANCHOLY_DARK) }
         chipVintage?.setOnClickListener { selectChip(chipVintage, ColorPalettes.VINTAGE_EARTHY) }
 
-        btnApply.setOnClickListener {
-            highlightListener?.onHighlightChanged(currentConfig)
-            bottomSheet.dismiss()
-        }
-
         bottomSheet.show()
     }
 
     class Builder(private val context: Context) {
         private var config = TextHighlightConfig()
         private var previewText: String? = null
-        private var presentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: TextHighlightListener? = null
+        private var lockProvider: ItemLockProvider? = null
+        private var lockedItemClickListener: ((LockableItem.Color, unlock: () -> Unit) -> Unit)? = null
         private var dismissListener: (() -> Unit)? = null
 
         fun setConfig(config: TextHighlightConfig) = apply { this.config = config }
         fun setPreviewText(text: String?) = apply { this.previewText = text }
-        fun setPresentationStyle(style: PresentationStyle) = apply { this.presentationStyle = style }
+        fun setLockProvider(provider: ItemLockProvider) = apply { this.lockProvider = provider }
+        fun setLockedColors(vararg colors: Int) = apply {
+            val provider = (this.lockProvider as? DefaultItemLockProvider) ?: DefaultItemLockProvider().also { this.lockProvider = it }
+            provider.lockColors(*colors)
+        }
+        fun setOnLockedItemClicked(listener: (LockableItem.Color, unlock: () -> Unit) -> Unit) = apply {
+            this.lockedItemClickListener = listener
+        }
         fun setOnHighlightChanged(listener: (TextHighlightConfig) -> Unit) = apply {
             this.listener = TextHighlightListener { listener(it) }
         }
@@ -199,7 +208,8 @@ class TextHighlightDialog(private val context: Context) {
             val dialog = TextHighlightDialog(context)
             dialog.setConfig(config)
             dialog.setPreviewText(previewText)
-            dialog.setPresentationStyle(presentationStyle)
+            dialog.setLockProvider(lockProvider)
+            lockedItemClickListener?.let { dialog.setOnLockedItemClickListener(it) }
             listener?.let { dialog.setHighlightListener(it) }
             dismissListener?.let { dialog.setOnDismissListener(it) }
             return dialog

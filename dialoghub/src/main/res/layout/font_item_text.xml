@@ -45,6 +45,18 @@
             android:visibility="gone"
             app:tint="#3B82F6" />
 
+        <ImageView
+            android:id="@+id/ivFontLockBadge"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/bg_lock_badge"
+            android:contentDescription="Locked"
+            android:padding="3dp"
+            android:src="@drawable/ic_lock_badge"
+            android:visibility="gone" />
+
         <View
             android:id="@+id/selectedOverlay"
             android:layout_width="match_parent"

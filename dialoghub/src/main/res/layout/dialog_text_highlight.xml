@@ -114,12 +114,15 @@
         android:id="@+id/seekBarRadius"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="4dp"
         android:max="32"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:progress="12"
         android:progressTint="?attr/colorPrimary"
+        android:splitTrack="false"
         android:thumbTint="?attr/colorPrimary" />
 
     <!-- Ribbon Colors Header -->
@@ -267,16 +270,5 @@
         android:layout_height="wrap_content"
         android:clipToPadding="false"
         android:overScrollMode="never" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnApplyHighlight"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="18dp"
-        android:text="Apply Ribbon"
-        android:textAllCaps="false"
-        android:textSize="15sp"
-        app:cornerRadius="12dp" />
 
 </LinearLayout>

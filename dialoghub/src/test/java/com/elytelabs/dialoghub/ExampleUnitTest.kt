@@ -1,9 +1,10 @@
 package com.elytelabs.dialoghub
 
-import com.elytelabs.dialoghub.models.PresentationStyle
+import com.elytelabs.dialoghub.models.StudioTab
 import com.elytelabs.dialoghub.models.TextHighlightConfig
 import com.elytelabs.dialoghub.models.TextStrokeConfig
 import com.elytelabs.dialoghub.models.TextTypographyConfig
+import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
 import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.dialoghub.utils.PoetryPalettes
 import org.junit.Assert.assertEquals
@@ -71,28 +72,79 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun presentationStyle_defaultIsBottomSheet() {
-        assertEquals(PresentationStyle.BOTTOM_SHEET, PresentationStyle.valueOf("BOTTOM_SHEET"))
+    fun studioTab_allTabsAndCustomFiltering_workCorrectly() {
+        val defaultTabs = StudioTab.DEFAULT
+        assertEquals(6, defaultTabs.size)
+        assertTrue(defaultTabs.contains(StudioTab.FONT))
+
+        val allTabs = StudioTab.ALL
+        assertEquals(6, allTabs.size)
+        assertTrue(allTabs.contains(StudioTab.COLOR))
+        assertTrue(allTabs.contains(StudioTab.FONT))
+        assertTrue(allTabs.contains(StudioTab.FORMAT))
+        assertTrue(allTabs.contains(StudioTab.EFFECTS))
+        assertTrue(allTabs.contains(StudioTab.STROKE))
+        assertTrue(allTabs.contains(StudioTab.RIBBON))
+
+        // Custom subset
+        val subset = setOf(StudioTab.FONT, StudioTab.COLOR)
+        assertEquals(2, subset.size)
+        assertFalse(subset.contains(StudioTab.STROKE))
     }
 
     @Test
-    fun studioTab_allTabsAndCustomFiltering_workCorrectly() {
-        val defaultTabs = com.elytelabs.dialoghub.models.StudioTab.DEFAULT
-        assertEquals(6, defaultTabs.size)
-        assertTrue(defaultTabs.contains(com.elytelabs.dialoghub.models.StudioTab.FONT))
+    fun itemLockProvider_lockingAndUnlocking_works() {
+        val provider = DefaultItemLockProvider()
+        assertFalse(provider.isFontLocked(101))
 
-        val allTabs = com.elytelabs.dialoghub.models.StudioTab.ALL
-        assertEquals(6, allTabs.size)
-        assertTrue(allTabs.contains(com.elytelabs.dialoghub.models.StudioTab.COLOR))
-        assertTrue(allTabs.contains(com.elytelabs.dialoghub.models.StudioTab.FONT))
-        assertTrue(allTabs.contains(com.elytelabs.dialoghub.models.StudioTab.FORMAT))
-        assertTrue(allTabs.contains(com.elytelabs.dialoghub.models.StudioTab.EFFECTS))
-        assertTrue(allTabs.contains(com.elytelabs.dialoghub.models.StudioTab.STROKE))
-        assertTrue(allTabs.contains(com.elytelabs.dialoghub.models.StudioTab.RIBBON))
+        provider.lockFont(101)
+        assertTrue(provider.isFontLocked(101))
+        assertFalse(provider.isFontLocked(102))
 
-        // Custom subset
-        val subset = setOf(com.elytelabs.dialoghub.models.StudioTab.FONT, com.elytelabs.dialoghub.models.StudioTab.COLOR)
-        assertEquals(2, subset.size)
-        assertFalse(subset.contains(com.elytelabs.dialoghub.models.StudioTab.STROKE))
+        provider.unlockFont(101)
+        assertFalse(provider.isFontLocked(101))
+
+        provider.lockBackgrounds(201, 202)
+        assertTrue(provider.isBackgroundLocked(201))
+        assertTrue(provider.isBackgroundLocked(202))
+        assertFalse(provider.isBackgroundLocked(203))
+
+        provider.lockTabs(StudioTab.RIBBON)
+        assertTrue(provider.isTabLocked(StudioTab.RIBBON))
+        assertFalse(provider.isTabLocked(StudioTab.FONT))
+
+        provider.lockGallery(true)
+        assertTrue(provider.isGalleryLocked())
+
+        provider.unlockAll()
+        assertFalse(provider.isBackgroundLocked(201))
+        assertFalse(provider.isTabLocked(StudioTab.RIBBON))
+        assertFalse(provider.isGalleryLocked())
+    }
+
+    @Test
+    fun selectedBackground_types_workCorrectly() {
+        val img = com.elytelabs.dialoghub.models.SelectedBackground.Image(12345)
+        assertEquals(12345, img.drawableResId)
+
+        val color = com.elytelabs.dialoghub.models.SelectedBackground.Color(0xFF0000)
+        assertEquals(0xFF0000, color.colorInt)
+
+        val gallery = com.elytelabs.dialoghub.models.SelectedBackground.GalleryRequested
+        assertEquals(com.elytelabs.dialoghub.models.SelectedBackground.GalleryRequested, gallery)
+    }
+
+    @Test
+    fun itemLockProvider_colorAndPredicate_works() {
+        val provider = DefaultItemLockProvider()
+        provider.lockColor(0xFF112233.toInt())
+        assertTrue(provider.isColorLocked(0xFF112233.toInt()))
+        assertFalse(provider.isColorLocked(0xFFFFFFFF.toInt()))
+
+        provider.lockColorWhen { it == 0xFF445566.toInt() }
+        assertTrue(provider.isColorLocked(0xFF445566.toInt()))
+
+        provider.unlockColor(0xFF112233.toInt())
+        assertFalse(provider.isColorLocked(0xFF112233.toInt()))
     }
 }

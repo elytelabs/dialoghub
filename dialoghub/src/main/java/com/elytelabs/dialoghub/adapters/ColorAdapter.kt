@@ -9,12 +9,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.toolbox.ColorGenerator
 
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+
 class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
 
     private var colors: List<Int> = emptyList()
     private var transparency: Int = 255
     private var selectedColor: Int? = null
     private var onItemClickListener: ((Int) -> Unit)? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var onLockedItemClickListener: ((LockableItem.Color, unlock: () -> Unit) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -33,7 +38,10 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         )
         holder.colorView.setBackgroundColor(transparentColor)
 
-        val isSelected = if (selectedColor != null) {
+        val isLocked = lockProvider?.isColorLocked(color) == true
+        holder.ivColorLockBadge.visibility = if (isLocked) View.VISIBLE else View.GONE
+
+        val isSelected = if (!isLocked && selectedColor != null) {
             val selR = Color.red(selectedColor!!)
             val selG = Color.green(selectedColor!!)
             val selB = Color.blue(selectedColor!!)
@@ -53,9 +61,17 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         }
 
         holder.itemView.setOnClickListener {
-            selectedColor = color
-            notifyItemRangeChanged(0, itemCount)
-            onItemClickListener?.invoke(color)
+            if (isLocked) {
+                onLockedItemClickListener?.invoke(LockableItem.Color(color)) {
+                    selectedColor = color
+                    notifyItemRangeChanged(0, itemCount)
+                    onItemClickListener?.invoke(color)
+                }
+            } else {
+                selectedColor = color
+                notifyItemRangeChanged(0, itemCount)
+                onItemClickListener?.invoke(color)
+            }
         }
     }
 
@@ -81,6 +97,15 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         return selectedColor
     }
 
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+        notifyDataSetChanged()
+    }
+
+    fun setOnLockedItemClickListener(listener: (LockableItem.Color, unlock: () -> Unit) -> Unit) {
+        this.onLockedItemClickListener = listener
+    }
+
     fun setOnItemClickListener(listener: (Int) -> Unit) {
         this.onItemClickListener = listener
     }
@@ -89,5 +114,6 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         val colorView: View = itemView.findViewById(R.id.colorView)
         val selectedCheck: ImageView = itemView.findViewById(R.id.selectedCheck)
         val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
+        val ivColorLockBadge: ImageView = itemView.findViewById(R.id.ivColorLockBadge)
     }
 }

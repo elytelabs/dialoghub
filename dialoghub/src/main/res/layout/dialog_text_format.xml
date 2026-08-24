@@ -107,12 +107,15 @@
         android:id="@+id/seekBarTextSize"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="4dp"
         android:max="30"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:progress="8"
         android:progressTint="?attr/colorPrimary"
+        android:splitTrack="false"
         android:thumbTint="?attr/colorPrimary" />
 
     <!-- Text Alignment Section -->

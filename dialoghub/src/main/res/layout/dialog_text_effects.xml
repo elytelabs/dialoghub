@@ -185,12 +185,15 @@
                 android:id="@+id/seekBarShadow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="6dp"
+                android:layout_marginEnd="4dp"
                 android:max="25"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="0"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
 
             <!-- Shadow Color Quick Swatches -->
@@ -295,12 +298,15 @@
                 android:id="@+id/seekBarLetterSpacing"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="6dp"
+                android:layout_marginEnd="4dp"
                 android:max="30"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="0"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
 
             <!-- Line Spacing Slider -->
@@ -342,25 +348,16 @@
                 android:id="@+id/seekBarLineSpacing"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="6dp"
+                android:layout_marginEnd="4dp"
                 android:max="20"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:progress="5"
                 android:progressTint="?attr/colorPrimary"
+                android:splitTrack="false"
                 android:thumbTint="?attr/colorPrimary" />
-
-            <!-- Apply Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnApplyEffects"
-                style="@style/Widget.MaterialComponents.Button"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="16dp"
-                android:text="Apply Effects"
-                android:textAllCaps="false"
-                android:textSize="15sp"
-                app:cornerRadius="12dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -1,4 +1,4 @@
-﻿package com.elytelabs.dialoghub.models
+package com.elytelabs.dialoghub.models
 
 /**
  * Represents the result of a selection from [com.elytelabs.dialoghub.dialogs.ImageSelectorDialog].

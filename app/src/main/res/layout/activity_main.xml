@@ -7,27 +7,50 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Top Preview Box -->
+    <!-- Top Preview Box (Dedicated Canvas displaying active Image / Color) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/previewCard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="140dp"
         android:layout_margin="16dp"
-        app:cardBackgroundColor="#F8F9FA"
+        app:cardBackgroundColor="#0F172A"
         app:cardCornerRadius="16dp"
-        app:cardElevation="2dp">
+        app:cardElevation="3dp">
 
-        <TextView
-            android:id="@+id/textView"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:minHeight="100dp"
-            android:padding="20dp"
-            android:text="Customize this text and background using DialogHub!"
-            android:textColor="#212121"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_height="match_parent">
+
+            <!-- Active Background Image in Preview Box -->
+            <ImageView
+                android:id="@+id/ivMainPreviewBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <!-- Subtle dark legibility scrim -->
+            <View
+                android:id="@+id/viewMainPreviewScrim"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#20000000" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_margin="12dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:text="Customize this text and background using DialogHub!"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </FrameLayout>
     </androidx.cardview.widget.CardView>
 
     <ScrollView
@@ -42,14 +65,15 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Theme Mode Switcher Card -->
+            <!-- Monetization & Daily Quota Card -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/quotaCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="#1E293B"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="1dp">
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -57,102 +81,68 @@
                     android:orientation="vertical"
                     android:padding="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Test Host App Theme Context:"
-                        android:textColor="#1F2937"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioGroup
-                        android:id="@+id/rgThemeMode"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <RadioButton
-                            android:id="@+id/rbMaterial"
+                        <TextView
+                            android:id="@+id/tvQuotaStatus"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Daily Free Quota: 3/3 edits left"
+                            android:textColor="#F3F4F6"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvProBadge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="Material Theme Context (Inherits Brand Colors)"
-                            android:textSize="13sp" />
+                            android:background="#3B82F6"
+                            android:paddingStart="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="3dp"
+                            android:text="FREE TIER"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-                        <RadioButton
-                            android:id="@+id/rbAppCompat"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Legacy AppCompat Context (Auto-wrapped Fallback)"
-                            android:textSize="13sp" />
-                    </RadioGroup>
-
-                    <TextView
-                        android:id="@+id/tvThemeStatus"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Using: Material3 Theme (Direct inheritance)"
-                        android:textColor="#4CAF50"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
 
-            <!-- Invocation Mode Selector Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="1dp">
+                        <Button
+                            android:id="@+id/btnSimulateRewardedAd"
+                            android:layout_width="0dp"
+                            android:layout_height="42dp"
+                            android:layout_weight="1"
+                            android:backgroundTint="#F59E0B"
+                            android:text="📺 Watch Ad (12h Pass)"
+                            android:textAllCaps="false"
+                            android:textColor="#1F2937"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="API Invocation Paradigm:"
-                        android:textColor="#1F2937"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioGroup
-                        android:id="@+id/rgInvocationMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="vertical">
-
-                        <RadioButton
-                            android:id="@+id/rbModeDsl"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="Kotlin DSL &amp; Fluent Builder"
-                            android:textSize="13sp" />
-
-                        <RadioButton
-                            android:id="@+id/rbModeCoroutine"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Coroutines Async Suspension (await*)"
-                            android:textSize="13sp" />
-
-                        <RadioButton
-                            android:id="@+id/rbModeTraditional"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Traditional Callback / Listener"
-                            android:textSize="13sp" />
-                    </RadioGroup>
+                        <Button
+                            android:id="@+id/btnTogglePro"
+                            android:layout_width="0dp"
+                            android:layout_height="42dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:backgroundTint="#10B981"
+                            android:text="👑 Toggle VIP / PRO"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -162,7 +152,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:backgroundTint="#4F46E5"
-                android:text="⭐ ALL-IN-ONE TEXT STUDIO"
+                android:text="ALL-IN-ONE TEXT STUDIO"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
@@ -171,8 +161,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="6dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Or Launch Individual Dialogs:"
                 android:textColor="#6B7280"

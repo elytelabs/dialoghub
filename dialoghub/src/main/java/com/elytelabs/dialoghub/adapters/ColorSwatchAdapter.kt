@@ -10,9 +10,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.toolbox.ColorGenerator
 
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+
 /**
- * High-performance horizontal/grid color swatch adapter with distinct active selection rings
- * and optional 'None' (transparent) option support.
+ * High-performance horizontal/grid color swatch adapter with distinct active selection rings,
+ * lock badge indicators for monetization, and optional 'None' (transparent) option support.
  */
 class ColorSwatchAdapter(
     private val includeNoneOption: Boolean = false
@@ -22,6 +25,8 @@ class ColorSwatchAdapter(
     private var selectedColor: Int? = null
     private var isNoneSelected: Boolean = false
     private var onSwatchClickListener: ((color: Int, isNone: Boolean) -> Unit)? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var onLockedItemClickListener: ((LockableItem.Color, unlock: () -> Unit) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -38,6 +43,7 @@ class ColorSwatchAdapter(
             holder.viewSwatchColor.setBackgroundColor(Color.TRANSPARENT)
             holder.ivNoneIcon.visibility = View.VISIBLE
             holder.ivSelectedCheck.visibility = View.GONE
+            holder.ivSwatchLockBadge.visibility = View.GONE
 
             if (isNoneSelected) {
                 holder.viewActiveRing.visibility = View.VISIBLE
@@ -59,7 +65,10 @@ class ColorSwatchAdapter(
             holder.viewSwatchColor.setBackgroundColor(color)
             holder.cardColorSwatch.setCardBackgroundColor(color)
 
-            val isSelected = !isNoneSelected && selectedColor != null && isColorMatching(selectedColor!!, color)
+            val isLocked = lockProvider?.isColorLocked(color) == true
+            holder.ivSwatchLockBadge.visibility = if (isLocked) View.VISIBLE else View.GONE
+
+            val isSelected = !isLocked && !isNoneSelected && selectedColor != null && isColorMatching(selectedColor!!, color)
 
             if (isSelected) {
                 holder.viewActiveRing.visibility = View.VISIBLE
@@ -72,10 +81,19 @@ class ColorSwatchAdapter(
             }
 
             holder.itemView.setOnClickListener {
-                isNoneSelected = false
-                selectedColor = color
-                notifyItemRangeChanged(0, itemCount)
-                onSwatchClickListener?.invoke(color, false)
+                if (isLocked) {
+                    onLockedItemClickListener?.invoke(LockableItem.Color(color)) {
+                        isNoneSelected = false
+                        selectedColor = color
+                        notifyItemRangeChanged(0, itemCount)
+                        onSwatchClickListener?.invoke(color, false)
+                    }
+                } else {
+                    isNoneSelected = false
+                    selectedColor = color
+                    notifyItemRangeChanged(0, itemCount)
+                    onSwatchClickListener?.invoke(color, false)
+                }
             }
         }
     }
@@ -95,6 +113,15 @@ class ColorSwatchAdapter(
         notifyDataSetChanged()
     }
 
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+        notifyDataSetChanged()
+    }
+
+    fun setOnLockedItemClickListener(listener: (LockableItem.Color, unlock: () -> Unit) -> Unit) {
+        this.onLockedItemClickListener = listener
+    }
+
     fun setOnSwatchClickListener(listener: (color: Int, isNone: Boolean) -> Unit) {
         this.onSwatchClickListener = listener
     }
@@ -111,5 +138,6 @@ class ColorSwatchAdapter(
         val viewSwatchColor: View = itemView.findViewById(R.id.viewSwatchColor)
         val ivNoneIcon: ImageView = itemView.findViewById(R.id.ivNoneIcon)
         val ivSelectedCheck: ImageView = itemView.findViewById(R.id.ivSelectedCheck)
+        val ivSwatchLockBadge: ImageView = itemView.findViewById(R.id.ivSwatchLockBadge)
     }
 }

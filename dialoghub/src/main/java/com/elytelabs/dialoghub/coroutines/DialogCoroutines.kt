@@ -9,7 +9,6 @@ import com.elytelabs.dialoghub.dialogs.TextFormatDialog
 import com.elytelabs.dialoghub.dialogs.TextHighlightDialog
 import com.elytelabs.dialoghub.dialogs.TextStrokeDialog
 import com.elytelabs.dialoghub.dialogs.TextStudioDialog
-import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.models.SelectedBackground
 import com.elytelabs.dialoghub.models.StudioTab
 import com.elytelabs.dialoghub.models.TextEffectConfig
@@ -28,13 +27,11 @@ import kotlin.coroutines.resume
 suspend fun Context.awaitColor(
     customColors: List<Int>? = null,
     selectedColor: Int? = null,
-    initialTransparency: Int = 255,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    initialTransparency: Int = 255
 ): Int? = suspendCancellableCoroutine { continuation ->
     var chosenColor: Int? = selectedColor
 
     val dialog = ColorPickerDialog.Builder(this)
-        .setPresentationStyle(presentationStyle)
         .setInitialTransparency(initialTransparency)
         .apply {
             if (customColors != null) setCustomColors(customColors)
@@ -60,8 +57,7 @@ suspend fun Context.awaitColor(
 suspend fun Context.awaitFont(
     fonts: List<Int>,
     previewText: String? = null,
-    selectedFontResId: Int? = null,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    selectedFontResId: Int? = null
 ): Int? = suspendCancellableCoroutine { continuation ->
     var chosenFont: Int? = selectedFontResId
 
@@ -69,7 +65,6 @@ suspend fun Context.awaitFont(
         .setFonts(fonts)
         .setPreviewText(previewText)
         .setSelectedFont(selectedFontResId)
-        .setPresentationStyle(presentationStyle)
         .setOnFontSelected { fontResId ->
             chosenFont = fontResId
         }
@@ -90,8 +85,7 @@ suspend fun Context.awaitFont(
 suspend fun Context.awaitBackground(
     backgrounds: List<Int> = emptyList(),
     selectedBackgroundResId: Int? = null,
-    enableGalleryPick: Boolean = false,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    enableGalleryPick: Boolean = false
 ): SelectedBackground? = suspendCancellableCoroutine { continuation ->
     var result: SelectedBackground? = null
 
@@ -101,7 +95,6 @@ suspend fun Context.awaitBackground(
         .setEnableGalleryPick(enableGalleryPick) {
             result = SelectedBackground.GalleryRequested
         }
-        .setPresentationStyle(presentationStyle)
         .setOnImageSelected { resId ->
             result = SelectedBackground.Image(resId)
         }
@@ -125,8 +118,7 @@ suspend fun Context.awaitBackground(
 suspend fun Context.awaitTextFormat(
     initialSizeSp: Float = TextFormatDialog.DEFAULT_SIZE_SP,
     initialAlignment: TextFormatDialog.TextAlignment = TextFormatDialog.TextAlignment.CENTER,
-    previewText: String? = null,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    previewText: String? = null
 ): TextFormatResult = suspendCancellableCoroutine { continuation ->
     var currentSize = initialSizeSp
     var currentAlign = initialAlignment
@@ -135,7 +127,6 @@ suspend fun Context.awaitTextFormat(
         .setTextSize(initialSizeSp)
         .setAlignment(initialAlignment)
         .setPreviewText(previewText)
-        .setPresentationStyle(presentationStyle)
         .setOnFormatChanged { size, align ->
             currentSize = size
             currentAlign = align
@@ -156,15 +147,13 @@ suspend fun Context.awaitTextFormat(
  */
 suspend fun Context.awaitTextEffects(
     initialConfig: TextEffectConfig = TextEffectConfig(),
-    previewText: String? = null,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    previewText: String? = null
 ): TextEffectConfig = suspendCancellableCoroutine { continuation ->
     var config = initialConfig
 
     val dialog = TextEffectsDialog.Builder(this)
         .setConfig(initialConfig)
         .setPreviewText(previewText)
-        .setPresentationStyle(presentationStyle)
         .setOnEffectsChanged { updatedConfig ->
             config = updatedConfig
         }
@@ -184,15 +173,13 @@ suspend fun Context.awaitTextEffects(
  */
 suspend fun Context.awaitTextStroke(
     initialConfig: TextStrokeConfig = TextStrokeConfig(),
-    previewText: String? = null,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    previewText: String? = null
 ): TextStrokeConfig = suspendCancellableCoroutine { continuation ->
     var config = initialConfig
 
     val dialog = TextStrokeDialog.Builder(this)
         .setConfig(initialConfig)
         .setPreviewText(previewText)
-        .setPresentationStyle(presentationStyle)
         .setOnStrokeChanged { updatedConfig ->
             config = updatedConfig
         }
@@ -212,15 +199,13 @@ suspend fun Context.awaitTextStroke(
  */
 suspend fun Context.awaitTextHighlight(
     initialConfig: TextHighlightConfig = TextHighlightConfig(),
-    previewText: String? = null,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    previewText: String? = null
 ): TextHighlightConfig = suspendCancellableCoroutine { continuation ->
     var config = initialConfig
 
     val dialog = TextHighlightDialog.Builder(this)
         .setConfig(initialConfig)
         .setPreviewText(previewText)
-        .setPresentationStyle(presentationStyle)
         .setOnHighlightChanged { updatedConfig ->
             config = updatedConfig
         }
@@ -243,8 +228,10 @@ suspend fun Context.awaitTextStudio(
     previewText: String? = null,
     fonts: List<Int>? = null,
     enabledTabs: Set<StudioTab> = StudioTab.DEFAULT,
-    showPreviewPane: Boolean = false,
-    presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
+    showPreviewPane: Boolean = true,
+    backgroundDrawable: android.graphics.drawable.Drawable? = null,
+    backgroundDrawableRes: Int? = null,
+    backgroundColorInt: Int? = null
 ): TextTypographyConfig = suspendCancellableCoroutine { continuation ->
     var resultConfig = initialConfig
 
@@ -253,10 +240,12 @@ suspend fun Context.awaitTextStudio(
         .setPreviewText(previewText)
         .setTabs(enabledTabs)
         .setShowPreviewPane(showPreviewPane)
+        .setBackgroundDrawable(backgroundDrawable)
+        .setBackgroundRes(backgroundDrawableRes)
+        .setBackgroundColor(backgroundColorInt)
         .apply {
             if (fonts != null) setFonts(fonts)
         }
-        .setPresentationStyle(presentationStyle)
         .setOnTypographyApplied { applied ->
             resultConfig = applied
         }

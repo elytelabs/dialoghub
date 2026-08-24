@@ -58,4 +58,16 @@
                 app:tint="#FFFFFF" />
         </FrameLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Locked Badge -->
+    <ImageView
+        android:id="@+id/ivSwatchLockBadge"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/bg_lock_badge"
+        android:contentDescription="Locked"
+        android:padding="2dp"
+        android:src="@drawable/ic_lock_badge"
+        android:visibility="gone" />
 </FrameLayout>

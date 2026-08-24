@@ -57,7 +57,12 @@ data class TextEffectConfig(
 
         // 6. Shadow Effect
         if (shadowRadius > 0f) {
-            textView.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor)
+            textView.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+            val density = textView.resources.displayMetrics.density
+            val radiusPx = (shadowRadius * density).coerceAtLeast(1f)
+            val dxPx = shadowDx * density
+            val dyPx = shadowDy * density
+            textView.setShadowLayer(radiusPx, dxPx, dyPx, shadowColor)
         } else {
             textView.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
         }

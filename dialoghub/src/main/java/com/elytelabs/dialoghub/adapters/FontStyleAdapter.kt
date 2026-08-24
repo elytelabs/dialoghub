@@ -12,6 +12,9 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 
+import com.elytelabs.dialoghub.monetization.ItemLockProvider
+import com.elytelabs.dialoghub.monetization.LockableItem
+
 class FontStyleAdapter(private val context: Context)
     : RecyclerView.Adapter<FontStyleAdapter.ViewHolder>() {
 
@@ -19,6 +22,8 @@ class FontStyleAdapter(private val context: Context)
     private var previewText: String? = null
     private var selectedFontResId: Int? = null
     private var onFontClickListener: ((Int) -> Unit)? = null
+    private var lockProvider: ItemLockProvider? = null
+    private var onLockedItemClickListener: ((LockableItem.Font, unlock: () -> Unit) -> Unit)? = null
     private val typefaceCache = LruCache<Int, Typeface>(20)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -62,15 +67,26 @@ class FontStyleAdapter(private val context: Context)
 
         holder.textView.text = displayText
 
+        val isLocked = lockProvider?.isFontLocked(fontRes) == true
+        holder.ivFontLockBadge.visibility = if (isLocked) View.VISIBLE else View.GONE
+
         // Selection highlight
-        val isSelected = (selectedFontResId != null && selectedFontResId == fontRes)
+        val isSelected = (!isLocked && selectedFontResId != null && selectedFontResId == fontRes)
         holder.selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
         holder.ivFontSelectedCheck.visibility = if (isSelected) View.VISIBLE else View.GONE
 
         holder.itemView.setOnClickListener {
-            selectedFontResId = fontRes
-            notifyItemRangeChanged(0, itemCount)
-            onFontClickListener?.invoke(fontRes)
+            if (isLocked) {
+                onLockedItemClickListener?.invoke(LockableItem.Font(fontRes)) {
+                    selectedFontResId = fontRes
+                    notifyItemRangeChanged(0, itemCount)
+                    onFontClickListener?.invoke(fontRes)
+                }
+            } else {
+                selectedFontResId = fontRes
+                notifyItemRangeChanged(0, itemCount)
+                onFontClickListener?.invoke(fontRes)
+            }
         }
     }
 
@@ -93,6 +109,15 @@ class FontStyleAdapter(private val context: Context)
         notifyDataSetChanged()
     }
 
+    fun setLockProvider(provider: ItemLockProvider?) {
+        this.lockProvider = provider
+        notifyDataSetChanged()
+    }
+
+    fun setOnLockedItemClickListener(listener: (LockableItem.Font, unlock: () -> Unit) -> Unit) {
+        this.onLockedItemClickListener = listener
+    }
+
     fun setOnFontClickListener(listener: (Int) -> Unit) {
         this.onFontClickListener = listener
     }
@@ -101,5 +126,6 @@ class FontStyleAdapter(private val context: Context)
         val textView: TextView = itemView.findViewById(R.id.textView)
         val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
         val ivFontSelectedCheck: ImageView = itemView.findViewById(R.id.ivFontSelectedCheck)
+        val ivFontLockBadge: ImageView = itemView.findViewById(R.id.ivFontLockBadge)
     }
 }

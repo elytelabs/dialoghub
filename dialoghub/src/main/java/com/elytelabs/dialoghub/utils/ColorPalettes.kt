@@ -1,4 +1,4 @@
-﻿package com.elytelabs.dialoghub.utils
+package com.elytelabs.dialoghub.utils
 
 import androidx.core.graphics.toColorInt
 
