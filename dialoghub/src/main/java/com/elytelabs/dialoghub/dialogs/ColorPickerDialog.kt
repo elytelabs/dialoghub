@@ -22,6 +22,7 @@ import com.elytelabs.dialoghub.R
 import com.elytelabs.dialoghub.adapters.ColorAdapter
 import com.elytelabs.dialoghub.models.PresentationStyle
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
+import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.toolbox.ColorGenerator
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -36,7 +37,7 @@ class ColorPickerDialog(private val context: Context) {
     private var customColors: List<Int>? = null
     private var selectedColor: Int? = null
     private var currentAlpha: Int = 255
-    private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var colorPickerListener: ColorPickerListener? = null
     private var dismissListener: (() -> Unit)? = null
 
@@ -133,31 +134,21 @@ class ColorPickerDialog(private val context: Context) {
         val themedContext = DialogThemeHelper.getThemedContext(context)
         val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_color_picker, null)
 
-        val dialog: Dialog = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) {
-            val bottomSheet = BottomSheetDialog(themedContext)
-            bottomSheet.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
-            bottomSheet.behavior.apply {
-                isFitToContents = true
-                skipCollapsed = true
-                state = BottomSheetBehavior.STATE_EXPANDED
-            }
-            bottomSheet
-        } else {
-            val standardDialog = Dialog(themedContext)
-            standardDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            standardDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
-            standardDialog.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.rounded_background)
-            standardDialog
+        val bottomSheet = BottomSheetDialog(themedContext)
+        bottomSheet.setContentView(dialogView)
+        dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
+        bottomSheet.behavior.apply {
+            isFitToContents = true
+            skipCollapsed = true
+            state = BottomSheetBehavior.STATE_EXPANDED
         }
 
-        dialog.setOnDismissListener {
+        bottomSheet.setOnDismissListener {
             dismissListener?.invoke()
         }
 
         val dragHandle = dialogView.findViewById<View>(R.id.dragHandle)
-        dragHandle?.visibility = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) View.VISIBLE else View.GONE
+        dragHandle?.visibility = View.VISIBLE
 
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.colorRecyclerView)
         val transparencySeekBar = dialogView.findViewById<SeekBar>(R.id.transparencySeekBar)
@@ -172,11 +163,44 @@ class ColorPickerDialog(private val context: Context) {
         recyclerView.adapter = adapter
 
         btnClose?.setOnClickListener {
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         val palette = customColors ?: ColorGenerator.getColorList()
         var pickedColor = selectedColor ?: palette.firstOrNull() ?: Color.WHITE
+
+        val chipAll = dialogView.findViewById<TextView>(R.id.chipPaletteAll)
+        val chipBold = dialogView.findViewById<TextView>(R.id.chipPaletteBold)
+        val chipNeon = dialogView.findViewById<TextView>(R.id.chipPaletteNeon)
+        val chipCalm = dialogView.findViewById<TextView>(R.id.chipPaletteCalm)
+        val chipPastel = dialogView.findViewById<TextView>(R.id.chipPalettePastel)
+        val chipDark = dialogView.findViewById<TextView>(R.id.chipPaletteDark)
+        val chipVintage = dialogView.findViewById<TextView>(R.id.chipPaletteVintage)
+
+        val chips = listOfNotNull(chipAll, chipBold, chipNeon, chipCalm, chipPastel, chipDark, chipVintage)
+
+        fun selectChip(selectedChip: TextView, colors: List<Int>) {
+            chips.forEach { chip ->
+                if (chip == selectedChip) {
+                    chip.backgroundTintList = android.content.res.ColorStateList.valueOf("#E5E7EB".toColorInt())
+                    chip.setTextColor("#1F2937".toColorInt())
+                    chip.setTypeface(null, android.graphics.Typeface.BOLD)
+                } else {
+                    chip.backgroundTintList = android.content.res.ColorStateList.valueOf("#F3F4F6".toColorInt())
+                    chip.setTextColor("#4B5563".toColorInt())
+                    chip.setTypeface(null, android.graphics.Typeface.NORMAL)
+                }
+            }
+            adapter.setColors(colors)
+        }
+
+        chipAll?.setOnClickListener { selectChip(chipAll, customColors ?: ColorGenerator.getColorList()) }
+        chipBold?.setOnClickListener { selectChip(chipBold, ColorPalettes.MOTIVATIONAL_BOLD) }
+        chipNeon?.setOnClickListener { selectChip(chipNeon, ColorPalettes.AESTHETIC_NEON) }
+        chipCalm?.setOnClickListener { selectChip(chipCalm, ColorPalettes.NATURE_SUFI_CALM) }
+        chipPastel?.setOnClickListener { selectChip(chipPastel, ColorPalettes.PASTEL_SOFT) }
+        chipDark?.setOnClickListener { selectChip(chipDark, ColorPalettes.MELANCHOLY_DARK) }
+        chipVintage?.setOnClickListener { selectChip(chipVintage, ColorPalettes.VINTAGE_EARTHY) }
 
         fun getCurrentColorWithAlpha(): Int {
             return Color.argb(
@@ -246,17 +270,10 @@ class ColorPickerDialog(private val context: Context) {
         btnApply.setOnClickListener {
             val colorWithAlpha = getCurrentColorWithAlpha()
             colorPickerListener?.onColorSelected(colorWithAlpha)
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
-        dialog.show()
-
-        if (presentationStyle == PresentationStyle.DIALOG) {
-            dialog.window?.setLayout(
-                (themedContext.resources.displayMetrics.widthPixels * 0.92f).toInt(),
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
+        bottomSheet.show()
     }
 
     private fun showHexInputDialog(initialColor: Int, onHexApplied: (Int) -> Unit) {
@@ -306,7 +323,7 @@ class ColorPickerDialog(private val context: Context) {
         private var customColors: List<Int>? = null
         private var selectedColor: Int? = null
         private var initialTransparency: Int = 255
-        private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: ColorPickerListener? = null
         private var dismissListener: (() -> Unit)? = null
 

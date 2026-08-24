@@ -100,57 +100,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Presentation Style Selector Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Presentation Style:"
-                        android:textColor="#1F2937"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <RadioGroup
-                        android:id="@+id/rgPresentationStyle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal">
-
-                        <RadioButton
-                            android:id="@+id/rbStyleDialog"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:checked="true"
-                            android:text="Floating Dialog"
-                            android:textSize="13sp" />
-
-                        <RadioButton
-                            android:id="@+id/rbStyleBottomSheet"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Bottom Sheet"
-                            android:textSize="13sp" />
-                    </RadioGroup>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
             <!-- Invocation Mode Selector Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -207,7 +156,30 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Dialog Buttons -->
+            <!-- Unified Text Studio Button -->
+            <Button
+                android:id="@+id/btnTextStudio"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:backgroundTint="#4F46E5"
+                android:text="⭐ ALL-IN-ONE TEXT STUDIO"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Or Launch Individual Dialogs:"
+                android:textColor="#6B7280"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Individual Dialog Buttons -->
             <Button
                 android:id="@+id/btnImageSelector"
                 android:layout_width="match_parent"
@@ -245,6 +217,23 @@
                 android:layout_height="52dp"
                 android:layout_marginTop="10dp"
                 android:text="5. Text Effects Dialog (Shadow, Spacing, Styles)"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnStrokeSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="6. Text Stroke &amp; Outline Dialog"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnHighlightSelector"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="24dp"
+                android:text="7. Text Background Ribbon Dialog"
                 android:textAllCaps="false" />
 
         </LinearLayout>

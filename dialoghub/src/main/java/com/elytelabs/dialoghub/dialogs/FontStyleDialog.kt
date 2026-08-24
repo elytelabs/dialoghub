@@ -28,7 +28,7 @@ class FontStyleDialog(private val context: Context) {
     private var fonts: List<Int> = emptyList()
     private var previewText: String? = null
     private var selectedFontResId: Int? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var fontPickerListener: FontPickerListener? = null
     private var dismissListener: (() -> Unit)? = null
 
@@ -122,31 +122,21 @@ class FontStyleDialog(private val context: Context) {
         val themedContext = DialogThemeHelper.getThemedContext(context)
         val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_font_selector, null)
 
-        val dialog: Dialog = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) {
-            val bottomSheet = BottomSheetDialog(themedContext)
-            bottomSheet.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
-            bottomSheet.behavior.apply {
-                isFitToContents = true
-                skipCollapsed = true
-                state = BottomSheetBehavior.STATE_EXPANDED
-            }
-            bottomSheet
-        } else {
-            val standardDialog = Dialog(themedContext)
-            standardDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            standardDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
-            standardDialog.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.rounded_background)
-            standardDialog
+        val bottomSheet = BottomSheetDialog(themedContext)
+        bottomSheet.setContentView(dialogView)
+        dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
+        bottomSheet.behavior.apply {
+            isFitToContents = true
+            skipCollapsed = true
+            state = BottomSheetBehavior.STATE_EXPANDED
         }
 
-        dialog.setOnDismissListener {
+        bottomSheet.setOnDismissListener {
             dismissListener?.invoke()
         }
 
         val dragHandle = dialogView.findViewById<View>(R.id.dragHandle)
-        dragHandle?.visibility = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) View.VISIBLE else View.GONE
+        dragHandle?.visibility = View.VISIBLE
 
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.fontRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(themedContext, 2)
@@ -154,49 +144,19 @@ class FontStyleDialog(private val context: Context) {
         recyclerView.adapter = adapter
 
         dialogView.findViewById<ImageButton>(R.id.btnClose)?.setOnClickListener {
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         adapter.setOnFontClickListener { fontResId ->
             fontPickerListener?.onFontSelected(fontResId)
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
-
-        val etFontPreviewInput = dialogView.findViewById<EditText>(R.id.etFontPreviewInput)
-        val chipUrdu1 = dialogView.findViewById<TextView>(R.id.chipUrdu1)
-        val chipUrdu2 = dialogView.findViewById<TextView>(R.id.chipUrdu2)
-        val chipEnglish = dialogView.findViewById<TextView>(R.id.chipEnglish)
-        val chipNumbers = dialogView.findViewById<TextView>(R.id.chipNumbers)
-
-        if (!previewText.isNullOrEmpty()) {
-            etFontPreviewInput.setText(previewText)
-        }
-
-        etFontPreviewInput.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                adapter.setPreviewText(s?.toString())
-            }
-            override fun afterTextChanged(s: android.text.Editable?) {}
-        })
-
-        chipUrdu1.setOnClickListener { etFontPreviewInput.setText(chipUrdu1.text) }
-        chipUrdu2.setOnClickListener { etFontPreviewInput.setText(chipUrdu2.text) }
-        chipEnglish.setOnClickListener { etFontPreviewInput.setText(chipEnglish.text) }
-        chipNumbers.setOnClickListener { etFontPreviewInput.setText(chipNumbers.text) }
 
         adapter.setFonts(fonts)
-        adapter.setPreviewText(previewText ?: etFontPreviewInput.text.toString().ifEmpty { null })
+        adapter.setPreviewText(previewText)
         adapter.setSelectedFont(selectedFontResId)
 
-        dialog.show()
-
-        if (presentationStyle == PresentationStyle.DIALOG) {
-            dialog.window?.setLayout(
-                (themedContext.resources.displayMetrics.widthPixels * 0.92f).toInt(),
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
+        bottomSheet.show()
     }
 
     /**
@@ -206,7 +166,7 @@ class FontStyleDialog(private val context: Context) {
         private var fonts: List<Int> = emptyList()
         private var previewText: String? = null
         private var selectedFontResId: Int? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: FontPickerListener? = null
         private var dismissListener: (() -> Unit)? = null
 

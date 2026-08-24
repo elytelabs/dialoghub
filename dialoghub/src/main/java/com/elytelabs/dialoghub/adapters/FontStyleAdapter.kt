@@ -6,6 +6,7 @@ import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -43,15 +44,28 @@ class FontStyleAdapter(private val context: Context)
 
         holder.textView.typeface = typeface ?: Typeface.DEFAULT
 
-        if (!previewText.isNullOrEmpty()) {
-            holder.textView.text = previewText
+        val displayText = if (!previewText.isNullOrEmpty()) {
+            val text = previewText!!.trim()
+            if (text.length > 14) {
+                val words = text.split(Regex("\\s+"))
+                if (words.size >= 2) {
+                    "${words[0]} ${words[1]}"
+                } else {
+                    text.take(12)
+                }
+            } else {
+                text
+            }
         } else {
-            holder.textView.setText(R.string.sample_text)
+            context.getString(R.string.sample_text)
         }
+
+        holder.textView.text = displayText
 
         // Selection highlight
         val isSelected = (selectedFontResId != null && selectedFontResId == fontRes)
         holder.selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
+        holder.ivFontSelectedCheck.visibility = if (isSelected) View.VISIBLE else View.GONE
 
         holder.itemView.setOnClickListener {
             selectedFontResId = fontRes
@@ -86,5 +100,6 @@ class FontStyleAdapter(private val context: Context)
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.textView)
         val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
+        val ivFontSelectedCheck: ImageView = itemView.findViewById(R.id.ivFontSelectedCheck)
     }
 }

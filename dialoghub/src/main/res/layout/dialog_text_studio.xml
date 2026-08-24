@@ -1,0 +1,1088 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/rounded_background"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="Text Studio"
+            android:textColor="#1F2937"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?actionBarItemBackground"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_close" />
+    </LinearLayout>
+
+    <!-- Sleek In-Sheet Live Preview Canvas (Optional, default hidden when live sync is on) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardStudioPreview"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#0F172A"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_preview_canvas"
+            android:paddingStart="14dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:id="@+id/tvStudioPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:text="Sample Quote / نمونہ کلام"
+                android:textColor="#FFFFFF"
+                android:textDirection="anyRtl"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Canvas Contrast Mode Toggle (Dark Slate / Light Slate / Warm Parchment) -->
+            <ImageView
+                android:id="@+id/btnStudioCanvasToggle"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/rounded_background"
+                android:backgroundTint="#33FFFFFF"
+                android:contentDescription="Toggle Canvas Contrast"
+                android:padding="5dp"
+                android:src="@drawable/ic_contrast_toggle"
+                app:tint="#FFFFFF" />
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Studio Tab Strip (Scrollable & Dynamic with Active Badges) -->
+    <HorizontalScrollView
+        android:id="@+id/hsvStudioTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/containerStudioTabs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- 1. Font Tab -->
+            <FrameLayout
+                android:id="@+id/containerTabFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tabFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tab_selected"
+                    android:drawableStart="@drawable/ic_tab_font"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#FFFFFF"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="Font"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:id="@+id/dotFontBadge"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tab_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- 2. Color Tab -->
+            <FrameLayout
+                android:id="@+id/containerTabColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:id="@+id/tabColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tab_unselected"
+                    android:drawableStart="@drawable/ic_tile_palette"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#4B5563"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="Color"
+                    android:textColor="#4B5563"
+                    android:textSize="12sp" />
+
+                <View
+                    android:id="@+id/dotColorBadge"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tab_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- 3. Format (Size & Align) Tab -->
+            <FrameLayout
+                android:id="@+id/containerTabFormat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:id="@+id/tabFormat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tab_unselected"
+                    android:drawableStart="@drawable/ic_align_center"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#4B5563"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="Size &amp; Align"
+                    android:textColor="#4B5563"
+                    android:textSize="12sp" />
+
+                <View
+                    android:id="@+id/dotFormatBadge"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tab_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- 4. Stroke Tab -->
+            <FrameLayout
+                android:id="@+id/containerTabStroke"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:id="@+id/tabStroke"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tab_unselected"
+                    android:drawableStart="@drawable/ic_tab_stroke"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#4B5563"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="Stroke"
+                    android:textColor="#4B5563"
+                    android:textSize="12sp" />
+
+                <View
+                    android:id="@+id/dotStrokeBadge"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tab_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- 5. Effects Tab -->
+            <FrameLayout
+                android:id="@+id/containerTabEffects"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:id="@+id/tabEffects"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tab_unselected"
+                    android:drawableStart="@drawable/ic_tab_effects"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#4B5563"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="Effects"
+                    android:textColor="#4B5563"
+                    android:textSize="12sp" />
+
+                <View
+                    android:id="@+id/dotEffectsBadge"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tab_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- 6. Ribbon / Highlight Tab -->
+            <FrameLayout
+                android:id="@+id/containerTabRibbon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp">
+
+                <TextView
+                    android:id="@+id/tabRibbon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tab_unselected"
+                    android:drawableStart="@drawable/ic_tab_highlight"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="#4B5563"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="Highlight"
+                    android:textColor="#4B5563"
+                    android:textSize="12sp" />
+
+                <View
+                    android:id="@+id/dotRibbonBadge"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tab_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Content Containers (230dp fixed height) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="230dp">
+
+        <!-- 1. Font View (Default) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvStudioFonts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="4dp"
+            android:visibility="visible" />
+
+        <!-- 2. Color View -->
+        <LinearLayout
+            android:id="@+id/viewStudioColor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Category Chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipStudioColorAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#1F2937"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="All"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipStudioColorBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Bold"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioColorNeon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Neon"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioColorCalm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Calm"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioColorPastel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Pastel"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioColorDark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Dark"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioColorVintage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="Vintage"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStudioColors"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false" />
+        </LinearLayout>
+
+        <!-- 3. Format View (Size & Alignment) -->
+        <LinearLayout
+            android:id="@+id/viewStudioFormat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Text Size"
+                    android:textColor="#374151"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStudioTextSizeVal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#EEEEEE"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="20sp"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/sbStudioTextSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:max="32"
+                android:progress="8"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Alignment"
+                android:textColor="#374151"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/tgStudioAlignment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:checkedButton="@+id/btnStudioAlignCenter"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <Button
+                    android:id="@+id/btnStudioAlignLeft"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    app:icon="@drawable/ic_align_left"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp" />
+
+                <Button
+                    android:id="@+id/btnStudioAlignCenter"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    app:icon="@drawable/ic_align_center"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp" />
+
+                <Button
+                    android:id="@+id/btnStudioAlignRight"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    app:icon="@drawable/ic_align_right"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </LinearLayout>
+
+        <!-- 4. Stroke View -->
+        <LinearLayout
+            android:id="@+id/viewStudioStroke"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Stroke Width"
+                    android:textColor="#374151"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStudioStrokeVal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#EEEEEE"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="0dp"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/sbStudioStroke"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:max="16"
+                android:progress="0"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary" />
+
+            <!-- Stroke Color Category Chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="4dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokeAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#1F2937"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="All"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokeBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Bold"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokeNeon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Neon"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokeCalm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Calm"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokePastel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Pastel"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokeDark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Dark"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioStrokeVintage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Vintage"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStudioStrokeColors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+        </LinearLayout>
+
+        <!-- 5. Effects View -->
+        <LinearLayout
+            android:id="@+id/viewStudioEffects"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnStudioBold"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="B"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnStudioItalic"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="I"
+                    android:textStyle="italic" />
+
+                <Button
+                    android:id="@+id/btnStudioUnderline"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="U" />
+
+                <Button
+                    android:id="@+id/btnStudioCaps"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="aA" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Drop Shadow Blur"
+                    android:textColor="#374151"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStudioShadowValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#EEEEEE"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="0dp"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/sbStudioShadow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:max="25"
+                android:progress="0"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary" />
+
+            <!-- Shadow Color Palette -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Shadow Color"
+                android:textColor="#4B5563"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStudioShadowColors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+        </LinearLayout>
+
+        <!-- 6. Ribbon / Highlight View -->
+        <LinearLayout
+            android:id="@+id/viewStudioRibbon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Ribbon Roundness"
+                    android:textColor="#374151"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStudioRadiusVal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="#EEEEEE"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="12dp"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/sbStudioRadius"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:max="32"
+                android:progress="12"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary" />
+
+            <!-- Ribbon Color Category Chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="4dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#1F2937"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="All"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Bold"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonNeon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Neon"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonCalm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Calm"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonPastel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Pastel"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonDark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Dark"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipStudioRibbonVintage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/rounded_background"
+                        android:backgroundTint="#F3F4F6"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:text="Vintage"
+                        android:textColor="#4B5563"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStudioRibbonColors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Bottom Action Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnApplyStudio"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp"
+        android:text="Apply Typography"
+        android:textAllCaps="false"
+        android:textSize="15sp"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

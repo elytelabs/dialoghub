@@ -1,16 +1,18 @@
-﻿package com.elytelabs.dialoghub.models
+package com.elytelabs.dialoghub.models
 
 /**
  * Presentation mode for dialogs in DialogHub.
+ * DialogHub modern architecture uses Material BottomSheet for all dialogs.
  */
 enum class PresentationStyle {
     /**
-     * Standard floating centered modal dialog.
+     * Modern Material BottomSheet with top-rounded corners and drag handle.
      */
-    DIALOG,
+    BOTTOM_SHEET,
 
     /**
-     * Modern Material BottomSheetDialog with top-rounded corners.
+     * @deprecated DialogHub 1.4+ exclusively uses modern BottomSheet presentation for all dialogs.
      */
-    BOTTOM_SHEET
+    @Deprecated("DialogHub now uses modern BottomSheet for all dialogs.")
+    DIALOG
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_marginEnd="8dp">
+
+    <!-- Active Selection Outer Ring -->
+    <View
+        android:id="@+id/viewActiveRing"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_swatch_active_ring"
+        android:visibility="gone" />
+
+    <!-- Color Circle Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardColorSwatch"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center"
+        app:cardBackgroundColor="#E0E0E0"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="1dp"
+        app:cardMaxElevation="2dp"
+        app:cardPreventCornerOverlap="false">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Solid Color View -->
+            <View
+                android:id="@+id/viewSwatchColor"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- 'None' / Transparent Indicator Icon -->
+            <ImageView
+                android:id="@+id/ivNoneIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_none_swatch"
+                android:visibility="gone" />
+
+            <!-- Selected Check Icon -->
+            <ImageView
+                android:id="@+id/ivSelectedCheck"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                app:tint="#FFFFFF" />
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+</FrameLayout>

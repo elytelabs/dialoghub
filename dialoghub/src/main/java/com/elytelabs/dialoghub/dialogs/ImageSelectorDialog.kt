@@ -27,7 +27,7 @@ class ImageSelectorDialog(private val context: Context) {
     private var backgrounds: List<Int> = emptyList()
     private var enableGalleryPick: Boolean = false
     private var selectedBackgroundResId: Int? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var imagePickerListener: ImagePickerListener? = null
     private var galleryClickListener: (() -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
@@ -138,31 +138,21 @@ class ImageSelectorDialog(private val context: Context) {
         val themedContext = DialogThemeHelper.getThemedContext(context)
         val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_image_selector, null)
 
-        val dialog: Dialog = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) {
-            val bottomSheet = BottomSheetDialog(themedContext)
-            bottomSheet.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
-            bottomSheet.behavior.apply {
-                isFitToContents = true
-                skipCollapsed = true
-                state = BottomSheetBehavior.STATE_EXPANDED
-            }
-            bottomSheet
-        } else {
-            val standardDialog = Dialog(themedContext)
-            standardDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            standardDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
-            standardDialog.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.rounded_background)
-            standardDialog
+        val bottomSheet = BottomSheetDialog(themedContext)
+        bottomSheet.setContentView(dialogView)
+        dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
+        bottomSheet.behavior.apply {
+            isFitToContents = true
+            skipCollapsed = true
+            state = BottomSheetBehavior.STATE_EXPANDED
         }
 
-        dialog.setOnDismissListener {
+        bottomSheet.setOnDismissListener {
             dismissListener?.invoke()
         }
 
         val dragHandle = dialogView.findViewById<View>(R.id.dragHandle)
-        dragHandle?.visibility = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) View.VISIBLE else View.GONE
+        dragHandle?.visibility = View.VISIBLE
 
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.imageRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(themedContext, 3)
@@ -170,17 +160,17 @@ class ImageSelectorDialog(private val context: Context) {
         recyclerView.adapter = adapter
 
         dialogView.findViewById<ImageButton>(R.id.btnClose)?.setOnClickListener {
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         adapter.setOnImageClickListener { imageResource ->
             imagePickerListener?.onImageSelected(imageResource)
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         adapter.setOnGalleryClickListener {
             galleryClickListener?.invoke()
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         adapter.setOnColorPickerClickListener {
@@ -189,21 +179,14 @@ class ImageSelectorDialog(private val context: Context) {
             }
 
             colorPickerDialog.showColorPickerDialog()
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         adapter.setBackgrounds(backgrounds)
         adapter.setEnableGalleryPick(enableGalleryPick)
         adapter.setSelectedBackground(selectedBackgroundResId)
 
-        dialog.show()
-
-        if (presentationStyle == PresentationStyle.DIALOG) {
-            dialog.window?.setLayout(
-                (themedContext.resources.displayMetrics.widthPixels * 0.92f).toInt(),
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
+        bottomSheet.show()
     }
 
     /**
@@ -213,7 +196,7 @@ class ImageSelectorDialog(private val context: Context) {
         private var backgrounds: List<Int> = emptyList()
         private var enableGalleryPick: Boolean = false
         private var selectedBackgroundResId: Int? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var imagePickerListener: ImagePickerListener? = null
         private var galleryClickListener: (() -> Unit)? = null
         private var dismissListener: (() -> Unit)? = null

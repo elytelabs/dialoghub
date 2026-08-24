@@ -30,7 +30,7 @@ class TextEffectsDialog(private val context: Context) {
 
     private var currentConfig = TextEffectConfig()
     private var previewSampleText: String? = null
-    private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+    private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
     private var effectsListener: TextEffectsListener? = null
     private var dismissListener: (() -> Unit)? = null
 
@@ -106,31 +106,21 @@ class TextEffectsDialog(private val context: Context) {
         val themedContext = DialogThemeHelper.getThemedContext(context)
         val dialogView = LayoutInflater.from(themedContext).inflate(R.layout.dialog_text_effects, null)
 
-        val dialog: Dialog = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) {
-            val bottomSheet = BottomSheetDialog(themedContext)
-            bottomSheet.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
-            bottomSheet.behavior.apply {
-                isFitToContents = true
-                skipCollapsed = true
-                state = BottomSheetBehavior.STATE_EXPANDED
-            }
-            bottomSheet
-        } else {
-            val standardDialog = Dialog(themedContext)
-            standardDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            standardDialog.window?.setWindowAnimations(R.style.DialogHubAnimation)
-            standardDialog.setContentView(dialogView)
-            dialogView.setBackgroundResource(R.drawable.rounded_background)
-            standardDialog
+        val bottomSheet = BottomSheetDialog(themedContext)
+        bottomSheet.setContentView(dialogView)
+        dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
+        bottomSheet.behavior.apply {
+            isFitToContents = true
+            skipCollapsed = true
+            state = BottomSheetBehavior.STATE_EXPANDED
         }
 
-        dialog.setOnDismissListener {
+        bottomSheet.setOnDismissListener {
             dismissListener?.invoke()
         }
 
         val dragHandle = dialogView.findViewById<View>(R.id.dragHandle)
-        dragHandle?.visibility = if (presentationStyle == PresentationStyle.BOTTOM_SHEET) View.VISIBLE else View.GONE
+        dragHandle?.visibility = View.VISIBLE
 
         val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
         val tvLivePreview = dialogView.findViewById<TextView>(R.id.tvLivePreview)
@@ -155,7 +145,7 @@ class TextEffectsDialog(private val context: Context) {
         }
 
         btnClose?.setOnClickListener {
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
         fun updatePreviewAndNotify(notify: Boolean = true) {
@@ -205,12 +195,12 @@ class TextEffectsDialog(private val context: Context) {
 
         // Shadow Colors
         swatchBlack.setOnClickListener {
-            currentConfig = currentConfig.copy(shadowColor = Color.BLACK, shadowRadius = currentConfig.shadowRadius.coerceAtLeast(4f))
+            currentConfig = currentConfig.copy(shadowColor = "#000000".toColorInt(), shadowRadius = currentConfig.shadowRadius.coerceAtLeast(4f))
             if (seekBarShadow.progress == 0) seekBarShadow.progress = 4
             updatePreviewAndNotify()
         }
         swatchWhite.setOnClickListener {
-            currentConfig = currentConfig.copy(shadowColor = Color.WHITE, shadowRadius = currentConfig.shadowRadius.coerceAtLeast(6f))
+            currentConfig = currentConfig.copy(shadowColor = "#FFFFFF".toColorInt(), shadowRadius = currentConfig.shadowRadius.coerceAtLeast(6f))
             if (seekBarShadow.progress == 0) seekBarShadow.progress = 6
             updatePreviewAndNotify()
         }
@@ -240,7 +230,7 @@ class TextEffectsDialog(private val context: Context) {
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
 
-        // Line Spacing Multiplier (0.8x to 2.0x)
+        // Line Spacing Multiplier (0.8x to 2.8x)
         seekBarLineSpacing.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
                 val multiplier = 0.8f + (progress / 10f)
@@ -253,17 +243,10 @@ class TextEffectsDialog(private val context: Context) {
 
         btnApply.setOnClickListener {
             effectsListener?.onEffectsChanged(currentConfig)
-            dialog.dismiss()
+            bottomSheet.dismiss()
         }
 
-        dialog.show()
-
-        if (presentationStyle == PresentationStyle.DIALOG) {
-            dialog.window?.setLayout(
-                (themedContext.resources.displayMetrics.widthPixels * 0.92f).toInt(),
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
+        bottomSheet.show()
     }
 
     /**
@@ -272,7 +255,7 @@ class TextEffectsDialog(private val context: Context) {
     class Builder(private val context: Context) {
         private var config: TextEffectConfig = TextEffectConfig()
         private var previewSampleText: String? = null
-        private var presentationStyle: PresentationStyle = PresentationStyle.DIALOG
+        private var presentationStyle: PresentationStyle = PresentationStyle.BOTTOM_SHEET
         private var listener: TextEffectsListener? = null
         private var dismissListener: (() -> Unit)? = null
 

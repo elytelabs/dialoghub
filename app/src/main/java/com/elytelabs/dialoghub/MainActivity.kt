@@ -2,6 +2,7 @@ package com.elytelabs.dialoghub
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
@@ -15,28 +16,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.elytelabs.dialoghub.coroutines.awaitBackground
-import com.elytelabs.dialoghub.coroutines.awaitColor
-import com.elytelabs.dialoghub.coroutines.awaitFont
-import com.elytelabs.dialoghub.coroutines.awaitTextEffects
-import com.elytelabs.dialoghub.coroutines.awaitTextFormat
+import com.elytelabs.dialoghub.coroutines.*
 import com.elytelabs.dialoghub.demo.R
-import com.elytelabs.dialoghub.dialogs.ColorPickerDialog
-import com.elytelabs.dialoghub.dialogs.FontStyleDialog
-import com.elytelabs.dialoghub.dialogs.ImageSelectorDialog
-import com.elytelabs.dialoghub.dialogs.TextEffectsDialog
-import com.elytelabs.dialoghub.dialogs.TextFormatDialog
-import com.elytelabs.dialoghub.dsl.showColorPickerDialog
-import com.elytelabs.dialoghub.dsl.showFontStyleDialog
-import com.elytelabs.dialoghub.dsl.showImageSelectorDialog
-import com.elytelabs.dialoghub.dsl.showTextEffectsDialog
-import com.elytelabs.dialoghub.dsl.showTextFormatDialog
-import com.elytelabs.dialoghub.models.PresentationStyle
-import com.elytelabs.dialoghub.models.SelectedBackground
-import com.elytelabs.dialoghub.models.TextEffectConfig
+import com.elytelabs.dialoghub.dialogs.*
+import com.elytelabs.dialoghub.dsl.*
+import com.elytelabs.dialoghub.models.*
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -44,7 +32,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rootLayout: RelativeLayout
     private lateinit var textView: TextView
     private lateinit var rgThemeMode: RadioGroup
-    private lateinit var rgPresentationStyle: RadioGroup
     private lateinit var rgInvocationMode: RadioGroup
     private lateinit var tvThemeStatus: TextView
 
@@ -86,14 +73,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getPresentationStyle(): PresentationStyle {
-        return if (rgPresentationStyle.checkedRadioButtonId == R.id.rbStyleBottomSheet) {
-            PresentationStyle.BOTTOM_SHEET
-        } else {
-            PresentationStyle.DIALOG
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -102,7 +81,6 @@ class MainActivity : AppCompatActivity() {
         rootLayout = findViewById(R.id.rootLayout)
         textView = findViewById(R.id.textView)
         rgThemeMode = findViewById(R.id.rgThemeMode)
-        rgPresentationStyle = findViewById(R.id.rgPresentationStyle)
         rgInvocationMode = findViewById(R.id.rgInvocationMode)
         tvThemeStatus = findViewById(R.id.tvThemeStatus)
 
@@ -127,11 +105,23 @@ class MainActivity : AppCompatActivity() {
             R.drawable.bg22,
             R.drawable.bg23,
             R.drawable.bg25,
-            R.drawable.bg5
+            R.drawable.bg5,
+            R.drawable.bg22,
+            R.drawable.bg23,
+            R.drawable.bg25,
+            R.drawable.bg22,
+            R.drawable.bg23,
+            R.drawable.bg25
         )
 
         val fonts = listOf(
             R.font.righteous,
+            R.font.salsa,
+            R.font.schoolbell,
+            R.font.sofadi_one,
+            R.font.salsa,
+            R.font.schoolbell,
+            R.font.sofadi_one,
             R.font.salsa,
             R.font.schoolbell,
             R.font.sofadi_one
@@ -142,16 +132,67 @@ class MainActivity : AppCompatActivity() {
         val btnColorSelector: Button = findViewById(R.id.btnColorSelector)
         val btnFormatSelector: Button = findViewById(R.id.btnFormatSelector)
         val btnEffectsSelector: Button = findViewById(R.id.btnEffectsSelector)
+        val btnTextStudio: Button = findViewById(R.id.btnTextStudio)
 
-        // 1. Background Image / Gallery / Color Selector
-        btnImageSelector.setOnClickListener {
+        //  ALL-IN-ONE TEXT STUDIO (with real-time live preview)
+        btnTextStudio.setOnClickListener {
             val ctx = getActiveContext()
-            val style = getPresentationStyle()
+
+            val currentTypography = TextTypographyConfig(
+                fontResId = currentFontRes,
+                textColor = currentColor ?: Color.WHITE,
+                textSizeSp = currentTextSize,
+                alignment = currentAlignment,
+                effectConfig = currentEffectsConfig
+            )
 
             when (rgInvocationMode.checkedRadioButtonId) {
                 R.id.rbModeCoroutine -> {
                     lifecycleScope.launch {
-                        when (val result = ctx.awaitBackground(backgrounds, currentBackgroundRes, true, style)) {
+                        val result = ctx.awaitTextStudio(
+                            initialConfig = currentTypography,
+                            previewText = textView.text.toString(),
+                            fonts = fonts
+                        )
+                        result.applyTo(textView)
+                    }
+                }
+                R.id.rbModeDsl -> {
+                    ctx.showTextStudioDialog {
+                        setConfig(currentTypography)
+                        setPreviewText(textView.text.toString())
+                        setFonts(fonts)
+                        setOnLivePreviewListener { liveConfig ->
+                            liveConfig.applyTo(textView)
+                        }
+                        setOnTypographyApplied { applied ->
+                            applied.applyTo(textView)
+                        }
+                    }
+                }
+                else -> {
+                    TextStudioDialog(ctx).show(
+                        initialConfig = currentTypography,
+                        previewText = textView.text.toString(),
+                        fonts = fonts,
+                        onLivePreview = { liveConfig ->
+                            liveConfig.applyTo(textView)
+                        }
+                    ) { applied ->
+                        applied.applyTo(textView)
+                    }
+                }
+            }
+        }
+
+        // 1. Background Image / Gallery / Color Selector
+        btnImageSelector.setOnClickListener {
+            val ctx = getActiveContext()
+
+            when (rgInvocationMode.checkedRadioButtonId) {
+                R.id.rbModeCoroutine -> {
+                    lifecycleScope.launch {
+                        when (val result = ctx.awaitBackground(backgrounds, currentBackgroundRes, true)) {
                             is SelectedBackground.Image -> {
                                 currentBackgroundRes = result.drawableResId
                                 rootLayout.setBackgroundResource(result.drawableResId)
@@ -171,7 +212,6 @@ class MainActivity : AppCompatActivity() {
                     ctx.showImageSelectorDialog {
                         setBackgrounds(backgrounds)
                         setSelectedBackground(currentBackgroundRes)
-                        setPresentationStyle(style)
                         setEnableGalleryPick(true) { galleryLauncher.launch("image/*") }
                         setOnImageSelected { resId ->
                             currentBackgroundRes = resId
@@ -187,7 +227,6 @@ class MainActivity : AppCompatActivity() {
                     ImageSelectorDialog(ctx).show(
                         backgrounds = backgrounds,
                         selectedBackgroundResId = currentBackgroundRes,
-                        presentationStyle = style,
                         onPickFromGallery = { galleryLauncher.launch("image/*") },
                         onImageSelected = { resId ->
                             currentBackgroundRes = resId
@@ -205,12 +244,11 @@ class MainActivity : AppCompatActivity() {
         // 2. Font Style Selector with Custom Preview Text
         btnFontSelector.setOnClickListener {
             val ctx = getActiveContext()
-            val style = getPresentationStyle()
 
             when (rgInvocationMode.checkedRadioButtonId) {
                 R.id.rbModeCoroutine -> {
                     lifecycleScope.launch {
-                        val fontRes = ctx.awaitFont(fonts, "Sample / اردو", currentFontRes, style)
+                        val fontRes = ctx.awaitFont(fonts, "Sample / اردو", currentFontRes)
                         if (fontRes != null) {
                             currentFontRes = fontRes
                             textView.typeface = ResourcesCompat.getFont(this@MainActivity, fontRes)
@@ -223,7 +261,6 @@ class MainActivity : AppCompatActivity() {
                         setFonts(fonts)
                         setPreviewText("Sample / اردو")
                         setSelectedFont(currentFontRes)
-                        setPresentationStyle(style)
                         setOnFontSelected { fontResId ->
                             currentFontRes = fontResId
                             textView.typeface = ResourcesCompat.getFont(this@MainActivity, fontResId)
@@ -235,8 +272,7 @@ class MainActivity : AppCompatActivity() {
                     FontStyleDialog(ctx).show(
                         fonts = fonts,
                         previewText = "Sample / اردو",
-                        selectedFontResId = currentFontRes,
-                        presentationStyle = style
+                        selectedFontResId = currentFontRes
                     ) { fontResId ->
                         currentFontRes = fontResId
                         textView.typeface = ResourcesCompat.getFont(this, fontResId)
@@ -249,12 +285,11 @@ class MainActivity : AppCompatActivity() {
         // 3. Color Picker with Transparency & Live Preview
         btnColorSelector.setOnClickListener {
             val ctx = getActiveContext()
-            val style = getPresentationStyle()
 
             when (rgInvocationMode.checkedRadioButtonId) {
                 R.id.rbModeCoroutine -> {
                     lifecycleScope.launch {
-                        val color = ctx.awaitColor(selectedColor = currentColor, presentationStyle = style)
+                        val color = ctx.awaitColor(selectedColor = currentColor)
                         if (color != null) {
                             currentColor = color
                             rootLayout.setBackgroundColor(color)
@@ -264,7 +299,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.rbModeDsl -> {
                     ctx.showColorPickerDialog {
                         setSelectedColor(currentColor)
-                        setPresentationStyle(style)
                         setOnColorSelected { color ->
                             currentColor = color
                             rootLayout.setBackgroundColor(color)
@@ -273,8 +307,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> {
                     ColorPickerDialog(ctx).show(
-                        selectedColor = currentColor,
-                        presentationStyle = style
+                        selectedColor = currentColor
                     ) { color ->
                         currentColor = color
                         rootLayout.setBackgroundColor(color)
@@ -286,7 +319,6 @@ class MainActivity : AppCompatActivity() {
         // 4. Text Format Dialog (Live Preview, Text Size & Alignment)
         btnFormatSelector.setOnClickListener {
             val ctx = getActiveContext()
-            val style = getPresentationStyle()
 
             when (rgInvocationMode.checkedRadioButtonId) {
                 R.id.rbModeCoroutine -> {
@@ -294,8 +326,7 @@ class MainActivity : AppCompatActivity() {
                         val result = ctx.awaitTextFormat(
                             initialSizeSp = currentTextSize,
                             initialAlignment = currentAlignment,
-                            previewText = textView.text.toString(),
-                            presentationStyle = style
+                            previewText = textView.text.toString()
                         )
                         currentTextSize = result.textSizeSp
                         currentAlignment = result.alignment
@@ -308,7 +339,6 @@ class MainActivity : AppCompatActivity() {
                         setTextSize(currentTextSize)
                         setAlignment(currentAlignment)
                         setPreviewText(textView.text.toString())
-                        setPresentationStyle(style)
                         setOnFormatChanged { size, alignment ->
                             currentTextSize = size
                             currentAlignment = alignment
@@ -321,8 +351,7 @@ class MainActivity : AppCompatActivity() {
                     TextFormatDialog(ctx).show(
                         initialSizeSp = currentTextSize,
                         initialAlignment = currentAlignment,
-                        previewText = textView.text.toString(),
-                        presentationStyle = style
+                        previewText = textView.text.toString()
                     ) { size, alignment ->
                         currentTextSize = size
                         currentAlignment = alignment
@@ -336,15 +365,13 @@ class MainActivity : AppCompatActivity() {
         // 5. Text Effects Dialog (Styles, Drop Shadow, Letter Spacing, Line Spacing)
         btnEffectsSelector.setOnClickListener {
             val ctx = getActiveContext()
-            val style = getPresentationStyle()
 
             when (rgInvocationMode.checkedRadioButtonId) {
                 R.id.rbModeCoroutine -> {
                     lifecycleScope.launch {
                         val config = ctx.awaitTextEffects(
                             initialConfig = currentEffectsConfig,
-                            previewText = textView.text.toString(),
-                            presentationStyle = style
+                            previewText = textView.text.toString()
                         )
                         currentEffectsConfig = config
                         currentEffectsConfig.applyTo(textView)
@@ -354,7 +381,6 @@ class MainActivity : AppCompatActivity() {
                     ctx.showTextEffectsDialog {
                         setConfig(currentEffectsConfig)
                         setPreviewText(textView.text.toString())
-                        setPresentationStyle(style)
                         setOnEffectsChanged { config ->
                             currentEffectsConfig = config
                             currentEffectsConfig.applyTo(textView)
@@ -364,11 +390,70 @@ class MainActivity : AppCompatActivity() {
                 else -> {
                     TextEffectsDialog(ctx).show(
                         initialConfig = currentEffectsConfig,
-                        previewText = textView.text.toString(),
-                        presentationStyle = style
+                        previewText = textView.text.toString()
                     ) { config ->
                         currentEffectsConfig = config
                         currentEffectsConfig.applyTo(textView)
+                    }
+                }
+            }
+        }
+
+        // 6. Text Stroke & Outline Dialog
+        val btnStrokeSelector = findViewById<Button>(R.id.btnStrokeSelector)
+        btnStrokeSelector.setOnClickListener {
+            val ctx = getActiveContext()
+
+            when (rgInvocationMode.checkedRadioButtonId) {
+                R.id.rbModeCoroutine -> {
+                    lifecycleScope.launch {
+                        val config = ctx.awaitTextStroke(previewText = textView.text.toString())
+                        config.applyTo(textView)
+                    }
+                }
+                R.id.rbModeDsl -> {
+                    ctx.showTextStrokeDialog {
+                        setPreviewText(textView.text.toString())
+                        setOnStrokeChanged { config ->
+                            config.applyTo(textView)
+                        }
+                    }
+                }
+                else -> {
+                    TextStrokeDialog(ctx).show(
+                        previewText = textView.text.toString()
+                    ) { config ->
+                        config.applyTo(textView)
+                    }
+                }
+            }
+        }
+
+        // 7. Text Background Ribbon / Highlight Dialog
+        val btnHighlightSelector = findViewById<Button>(R.id.btnHighlightSelector)
+        btnHighlightSelector.setOnClickListener {
+            val ctx = getActiveContext()
+
+            when (rgInvocationMode.checkedRadioButtonId) {
+                R.id.rbModeCoroutine -> {
+                    lifecycleScope.launch {
+                        val config = ctx.awaitTextHighlight(previewText = textView.text.toString())
+                        config.applyTo(textView)
+                    }
+                }
+                R.id.rbModeDsl -> {
+                    ctx.showTextHighlightDialog {
+                        setPreviewText(textView.text.toString())
+                        setOnHighlightChanged { config ->
+                            config.applyTo(textView)
+                        }
+                    }
+                }
+                else -> {
+                    TextHighlightDialog(ctx).show(
+                        previewText = textView.text.toString()
+                    ) { config ->
+                        config.applyTo(textView)
                     }
                 }
             }
