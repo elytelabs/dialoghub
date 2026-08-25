@@ -2,9 +2,6 @@ package com.elytelabs.dialoghub.monetization
 
 import android.content.Context
 import android.content.SharedPreferences
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import androidx.core.content.edit
 
 /**
@@ -19,18 +16,16 @@ class UsageQuotaManager(context: Context) {
 
     companion object {
         private const val PREFS_NAME = "dialoghub_usage_quota"
-        private const val KEY_LAST_DATE = "key_last_date"
+        private const val KEY_LAST_DAY = "key_last_epoch_day"
         private const val KEY_REMAINING_EDITS = "key_remaining_edits"
         private const val KEY_IS_PRO_USER = "key_is_pro_user"
 
         const val DEFAULT_DAILY_FREE_EDITS = 3
         const val BONUS_EDITS_PER_AD = 5
+        private const val MILLIS_IN_DAY = 86_400_000L
     }
 
-    private val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.US)
-
-    @Synchronized
-    private fun getTodayDateString(): String = dateFormat.format(Date())
+    private fun getTodayEpochDay(): Long = System.currentTimeMillis() / MILLIS_IN_DAY
 
     /**
      * Checks whether the user is a VIP/PRO user with unlimited usage.
@@ -53,13 +48,13 @@ class UsageQuotaManager(context: Context) {
     fun getRemainingEdits(dailyFreeLimit: Int = DEFAULT_DAILY_FREE_EDITS): Int {
         if (isProUser()) return Int.MAX_VALUE
 
-        val today = getTodayDateString()
-        val lastDate = prefs.getString(KEY_LAST_DATE, "")
+        val today = getTodayEpochDay()
+        val lastDay = prefs.getLong(KEY_LAST_DAY, 0L)
 
-        if (today != lastDate) {
+        if (today != lastDay) {
             // New day: reset quota
             prefs.edit {
-                putString(KEY_LAST_DATE, today)
+                putLong(KEY_LAST_DAY, today)
                     .putInt(KEY_REMAINING_EDITS, dailyFreeLimit)
             }
             return dailyFreeLimit
@@ -100,9 +95,9 @@ class UsageQuotaManager(context: Context) {
      * Manually sets the remaining edits.
      */
     fun setRemainingEdits(edits: Int) {
-        val today = getTodayDateString()
+        val today = getTodayEpochDay()
         prefs.edit {
-            putString(KEY_LAST_DATE, today)
+            putLong(KEY_LAST_DAY, today)
                 .putInt(KEY_REMAINING_EDITS, edits)
         }
     }

@@ -11,9 +11,11 @@ import android.text.SpannableString
 import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -40,6 +42,77 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButtonToggleGroup
 import java.util.Locale
+
+private data class PaletteCategory(val labelResId: Int, val colors: List<Int>)
+
+private val PALETTE_CATEGORIES = listOf(
+    PaletteCategory(R.string.dh_palette_all, ColorPalettes.ALL_CURATED),
+    PaletteCategory(R.string.dh_palette_bold, ColorPalettes.MOTIVATIONAL_BOLD),
+    PaletteCategory(R.string.dh_palette_neon, ColorPalettes.AESTHETIC_NEON),
+    PaletteCategory(R.string.dh_palette_calm, ColorPalettes.NATURE_SUFI_CALM),
+    PaletteCategory(R.string.dh_palette_pastel, ColorPalettes.PASTEL_SOFT),
+    PaletteCategory(R.string.dh_palette_dark, ColorPalettes.MELANCHOLY_DARK),
+    PaletteCategory(R.string.dh_palette_vintage, ColorPalettes.VINTAGE_EARTHY)
+)
+
+private fun setupPaletteCategoryChips(
+    context: Context,
+    container: LinearLayout?,
+    accentList: ColorStateList,
+    onCategorySelected: (List<Int>) -> Unit
+) {
+    if (container == null) return
+    container.removeAllViews()
+    val density = context.resources.displayMetrics.density
+    val chipViews = mutableListOf<TextView>()
+
+    PALETTE_CATEGORIES.forEachIndexed { index, category ->
+        val chip = TextView(context).apply {
+            text = context.getString(category.labelResId)
+            textSize = 11f
+            androidx.core.widget.TextViewCompat.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2)
+            setBackgroundResource(R.drawable.rounded_background)
+            val hPad = (if (index == 0) 10f * density else 8f * density).toInt()
+            val vPad = (if (index == 0) 3f * density else 2f * density).toInt()
+            setPadding(hPad, vPad, hPad, vPad)
+
+            val lp = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                if (index > 0) marginStart = (4f * density).toInt()
+            }
+            layoutParams = lp
+
+            if (index == 0) {
+                backgroundTintList = accentList
+                setTextColor(Color.WHITE)
+                setTypeface(null, Typeface.BOLD)
+            } else {
+                backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
+                setTextColor("#4B5563".toColorInt())
+                setTypeface(null, Typeface.NORMAL)
+            }
+
+            setOnClickListener {
+                chipViews.forEach { v ->
+                    if (v == this) {
+                        v.backgroundTintList = accentList
+                        v.setTextColor(Color.WHITE)
+                        v.setTypeface(null, Typeface.BOLD)
+                    } else {
+                        v.backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
+                        v.setTextColor("#4B5563".toColorInt())
+                        v.setTypeface(null, Typeface.NORMAL)
+                    }
+                }
+                onCategorySelected(category.colors)
+            }
+        }
+        chipViews.add(chip)
+        container.addView(chip)
+    }
+}
 
 /**
  * All-In-One Unified Text Studio Dialog for comprehensive typography styling:
@@ -431,7 +504,6 @@ class TextStudioDialog(private val context: Context) {
         }
 
         activeEnabledItems.forEach { item ->
-            item.container.setOnClickListener { switchTab(item.tabBtn, item.contentView, item.tab) }
             item.tabBtn.setOnClickListener { switchTab(item.tabBtn, item.contentView, item.tab) }
         }
 
@@ -508,38 +580,10 @@ class TextStudioDialog(private val context: Context) {
             renderPreview()
         }
 
-        val chipStudioAll = dialogView.findViewById<TextView>(R.id.chipStudioColorAll)
-        val chipStudioBold = dialogView.findViewById<TextView>(R.id.chipStudioColorBold)
-        val chipStudioNeon = dialogView.findViewById<TextView>(R.id.chipStudioColorNeon)
-        val chipStudioCalm = dialogView.findViewById<TextView>(R.id.chipStudioColorCalm)
-        val chipStudioPastel = dialogView.findViewById<TextView>(R.id.chipStudioColorPastel)
-        val chipStudioDark = dialogView.findViewById<TextView>(R.id.chipStudioColorDark)
-        val chipStudioVintage = dialogView.findViewById<TextView>(R.id.chipStudioColorVintage)
-
-        val colorChips = listOfNotNull(chipStudioAll, chipStudioBold, chipStudioNeon, chipStudioCalm, chipStudioPastel, chipStudioDark, chipStudioVintage)
-
-        fun selectColorChip(selectedChip: TextView, colors: List<Int>) {
-            colorChips.forEach { chip ->
-                if (chip == selectedChip) {
-                    chip.backgroundTintList = accentList
-                    chip.setTextColor(Color.WHITE)
-                    chip.setTypeface(null, Typeface.BOLD)
-                } else {
-                    chip.backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
-                    chip.setTextColor("#4B5563".toColorInt())
-                    chip.setTypeface(null, Typeface.NORMAL)
-                }
-            }
+        val containerColorChips = dialogView.findViewById<LinearLayout>(R.id.containerStudioColorChips)
+        setupPaletteCategoryChips(themedContext, containerColorChips, accentList) { colors ->
             colorAdapter.setColors(colors)
         }
-
-        chipStudioAll?.setOnClickListener { selectColorChip(chipStudioAll, ColorPalettes.ALL_CURATED) }
-        chipStudioBold?.setOnClickListener { selectColorChip(chipStudioBold, ColorPalettes.MOTIVATIONAL_BOLD) }
-        chipStudioNeon?.setOnClickListener { selectColorChip(chipStudioNeon, ColorPalettes.AESTHETIC_NEON) }
-        chipStudioCalm?.setOnClickListener { selectColorChip(chipStudioCalm, ColorPalettes.NATURE_SUFI_CALM) }
-        chipStudioPastel?.setOnClickListener { selectColorChip(chipStudioPastel, ColorPalettes.PASTEL_SOFT) }
-        chipStudioDark?.setOnClickListener { selectColorChip(chipStudioDark, ColorPalettes.MELANCHOLY_DARK) }
-        chipStudioVintage?.setOnClickListener { selectColorChip(chipStudioVintage, ColorPalettes.VINTAGE_EARTHY) }
 
         // 3. Setup Format View (Size & Alignment)
         val sbSize = dialogView.findViewById<SeekBar>(R.id.sbStudioTextSize)
@@ -731,38 +775,10 @@ class TextStudioDialog(private val context: Context) {
             renderPreview()
         }
 
-        val chipStrokeAll = dialogView.findViewById<TextView>(R.id.chipStudioStrokeAll)
-        val chipStrokeBold = dialogView.findViewById<TextView>(R.id.chipStudioStrokeBold)
-        val chipStrokeNeon = dialogView.findViewById<TextView>(R.id.chipStudioStrokeNeon)
-        val chipStrokeCalm = dialogView.findViewById<TextView>(R.id.chipStudioStrokeCalm)
-        val chipStrokePastel = dialogView.findViewById<TextView>(R.id.chipStudioStrokePastel)
-        val chipStrokeDark = dialogView.findViewById<TextView>(R.id.chipStudioStrokeDark)
-        val chipStrokeVintage = dialogView.findViewById<TextView>(R.id.chipStudioStrokeVintage)
-
-        val strokeChips = listOfNotNull(chipStrokeAll, chipStrokeBold, chipStrokeNeon, chipStrokeCalm, chipStrokePastel, chipStrokeDark, chipStrokeVintage)
-
-        fun selectStrokeChip(selectedChip: TextView, colors: List<Int>) {
-            strokeChips.forEach { chip ->
-                if (chip == selectedChip) {
-                    chip.backgroundTintList = accentList
-                    chip.setTextColor(Color.WHITE)
-                    chip.setTypeface(null, Typeface.BOLD)
-                } else {
-                    chip.backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
-                    chip.setTextColor("#4B5563".toColorInt())
-                    chip.setTypeface(null, Typeface.NORMAL)
-                }
-            }
+        val containerStrokeChips = dialogView.findViewById<LinearLayout>(R.id.containerStudioStrokeChips)
+        setupPaletteCategoryChips(themedContext, containerStrokeChips, accentList) { colors ->
             strokeColorAdapter.setColors(colors)
         }
-
-        chipStrokeAll?.setOnClickListener { selectStrokeChip(chipStrokeAll, ColorPalettes.ALL_CURATED) }
-        chipStrokeBold?.setOnClickListener { selectStrokeChip(chipStrokeBold, ColorPalettes.MOTIVATIONAL_BOLD) }
-        chipStrokeNeon?.setOnClickListener { selectStrokeChip(chipStrokeNeon, ColorPalettes.AESTHETIC_NEON) }
-        chipStrokeCalm?.setOnClickListener { selectStrokeChip(chipStrokeCalm, ColorPalettes.NATURE_SUFI_CALM) }
-        chipStrokePastel?.setOnClickListener { selectStrokeChip(chipStrokePastel, ColorPalettes.PASTEL_SOFT) }
-        chipStrokeDark?.setOnClickListener { selectStrokeChip(chipStrokeDark, ColorPalettes.MELANCHOLY_DARK) }
-        chipStrokeVintage?.setOnClickListener { selectStrokeChip(chipStrokeVintage, ColorPalettes.VINTAGE_EARTHY) }
 
         // 5. Setup Effects View
         val sbShadow = dialogView.findViewById<SeekBar>(R.id.sbStudioShadow)
@@ -882,38 +898,10 @@ class TextStudioDialog(private val context: Context) {
             renderPreview()
         }
 
-        val chipRibbonAll = dialogView.findViewById<TextView>(R.id.chipStudioRibbonAll)
-        val chipRibbonBold = dialogView.findViewById<TextView>(R.id.chipStudioRibbonBold)
-        val chipRibbonNeon = dialogView.findViewById<TextView>(R.id.chipStudioRibbonNeon)
-        val chipRibbonCalm = dialogView.findViewById<TextView>(R.id.chipStudioRibbonCalm)
-        val chipRibbonPastel = dialogView.findViewById<TextView>(R.id.chipStudioRibbonPastel)
-        val chipRibbonDark = dialogView.findViewById<TextView>(R.id.chipStudioRibbonDark)
-        val chipRibbonVintage = dialogView.findViewById<TextView>(R.id.chipStudioRibbonVintage)
-
-        val ribbonChips = listOfNotNull(chipRibbonAll, chipRibbonBold, chipRibbonNeon, chipRibbonCalm, chipRibbonPastel, chipRibbonDark, chipRibbonVintage)
-
-        fun selectRibbonChip(selectedChip: TextView, colors: List<Int>) {
-            ribbonChips.forEach { chip ->
-                if (chip == selectedChip) {
-                    chip.backgroundTintList = accentList
-                    chip.setTextColor(Color.WHITE)
-                    chip.setTypeface(null, Typeface.BOLD)
-                } else {
-                    chip.backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
-                    chip.setTextColor("#4B5563".toColorInt())
-                    chip.setTypeface(null, Typeface.NORMAL)
-                }
-            }
+        val containerRibbonChips = dialogView.findViewById<LinearLayout>(R.id.containerStudioRibbonChips)
+        setupPaletteCategoryChips(themedContext, containerRibbonChips, accentList) { colors ->
             ribbonColorAdapter.setColors(colors)
         }
-
-        chipRibbonAll?.setOnClickListener { selectRibbonChip(chipRibbonAll, ColorPalettes.ALL_CURATED) }
-        chipRibbonBold?.setOnClickListener { selectRibbonChip(chipRibbonBold, ColorPalettes.MOTIVATIONAL_BOLD) }
-        chipRibbonNeon?.setOnClickListener { selectRibbonChip(chipRibbonNeon, ColorPalettes.AESTHETIC_NEON) }
-        chipRibbonCalm?.setOnClickListener { selectRibbonChip(chipRibbonCalm, ColorPalettes.NATURE_SUFI_CALM) }
-        chipRibbonPastel?.setOnClickListener { selectRibbonChip(chipRibbonPastel, ColorPalettes.PASTEL_SOFT) }
-        chipRibbonDark?.setOnClickListener { selectRibbonChip(chipRibbonDark, ColorPalettes.MELANCHOLY_DARK) }
-        chipRibbonVintage?.setOnClickListener { selectRibbonChip(chipRibbonVintage, ColorPalettes.VINTAGE_EARTHY) }
 
         // 1-Tap Reset Handler
         btnReset?.setOnClickListener {

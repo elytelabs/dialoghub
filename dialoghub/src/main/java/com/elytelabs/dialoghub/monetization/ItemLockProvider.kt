@@ -33,11 +33,6 @@ class DefaultItemLockProvider(
     private val lockedTabs = mutableSetOf<StudioTab>()
     private var lockGallery = false
 
-    private var fontPredicate: ((Int) -> Boolean)? = null
-    private var backgroundPredicate: ((Int) -> Boolean)? = null
-    private var colorPredicate: ((Int) -> Boolean)? = null
-    private var tabPredicate: ((StudioTab) -> Boolean)? = null
-
     /**
      * Attaches a [TimedPassManager] to enable 12-hour / timed VIP passes.
      */
@@ -84,28 +79,24 @@ class DefaultItemLockProvider(
     fun lockFont(fontResId: Int) = apply { lockedFonts.add(fontResId) }
     fun lockFonts(vararg fontResIds: Int) = apply { lockedFonts.addAll(fontResIds.toList()) }
     fun lockFonts(fontResIds: Collection<Int>) = apply { lockedFonts.addAll(fontResIds) }
-    fun lockFontWhen(predicate: (Int) -> Boolean) = apply { this.fontPredicate = predicate }
     fun unlockFont(fontResId: Int) = apply { lockedFonts.remove(fontResId) }
 
     // Background Lock Methods
     fun lockBackground(resId: Int) = apply { lockedBackgrounds.add(resId) }
     fun lockBackgrounds(vararg resIds: Int) = apply { lockedBackgrounds.addAll(resIds.toList()) }
     fun lockBackgrounds(resIds: Collection<Int>) = apply { lockedBackgrounds.addAll(resIds) }
-    fun lockBackgroundWhen(predicate: (Int) -> Boolean) = apply { this.backgroundPredicate = predicate }
     fun unlockBackground(resId: Int) = apply { lockedBackgrounds.remove(resId) }
 
     // Color Lock Methods
     fun lockColor(colorInt: Int) = apply { lockedColors.add(colorInt) }
     fun lockColors(vararg colorInts: Int) = apply { lockedColors.addAll(colorInts.toList()) }
     fun lockColors(colorInts: Collection<Int>) = apply { lockedColors.addAll(colorInts) }
-    fun lockColorWhen(predicate: (Int) -> Boolean) = apply { this.colorPredicate = predicate }
     fun unlockColor(colorInt: Int) = apply { lockedColors.remove(colorInt) }
 
     // Studio Tab Lock Methods
     fun lockTab(tab: StudioTab) = apply { lockedTabs.add(tab) }
     fun lockTabs(vararg tabs: StudioTab) = apply { lockedTabs.addAll(tabs.toList()) }
     fun lockTabs(tabs: Collection<StudioTab>) = apply { lockedTabs.addAll(tabs) }
-    fun lockTabWhen(predicate: (StudioTab) -> Boolean) = apply { this.tabPredicate = predicate }
     fun unlockTab(tab: StudioTab) = apply { lockedTabs.remove(tab) }
 
     // Action Tiles
@@ -118,30 +109,26 @@ class DefaultItemLockProvider(
         lockedColors.clear()
         lockedTabs.clear()
         lockGallery = false
-        fontPredicate = null
-        backgroundPredicate = null
-        colorPredicate = null
-        tabPredicate = null
     }
 
     override fun isFontLocked(fontResId: Int): Boolean {
         if (isPassActive()) return false
-        return lockedFonts.contains(fontResId) || (fontPredicate?.invoke(fontResId) == true)
+        return lockedFonts.contains(fontResId)
     }
 
     override fun isBackgroundLocked(resId: Int): Boolean {
         if (isPassActive()) return false
-        return lockedBackgrounds.contains(resId) || (backgroundPredicate?.invoke(resId) == true)
+        return lockedBackgrounds.contains(resId)
     }
 
     override fun isColorLocked(colorInt: Int): Boolean {
         if (isPassActive()) return false
-        return lockedColors.contains(colorInt) || (colorPredicate?.invoke(colorInt) == true)
+        return lockedColors.contains(colorInt)
     }
 
     override fun isTabLocked(tab: StudioTab): Boolean {
         if (isPassActive()) return false
-        return lockedTabs.contains(tab) || (tabPredicate?.invoke(tab) == true)
+        return lockedTabs.contains(tab)
     }
 
     override fun isGalleryLocked(): Boolean {

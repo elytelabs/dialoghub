@@ -133,14 +133,15 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun itemLockProvider_colorAndPredicate_works() {
+    fun itemLockProvider_colorLocking_works() {
         val provider = DefaultItemLockProvider()
         provider.lockColor(0xFF112233.toInt())
         assertTrue(provider.isColorLocked(0xFF112233.toInt()))
         assertFalse(provider.isColorLocked(0xFFFFFFFF.toInt()))
 
-        provider.lockColorWhen { it == 0xFF445566.toInt() }
+        provider.lockColors(0xFF445566.toInt(), 0xFF778899.toInt())
         assertTrue(provider.isColorLocked(0xFF445566.toInt()))
+        assertTrue(provider.isColorLocked(0xFF778899.toInt()))
 
         provider.unlockColor(0xFF112233.toInt())
         assertFalse(provider.isColorLocked(0xFF112233.toInt()))

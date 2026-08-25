@@ -66,7 +66,7 @@
             android:src="@drawable/ic_close" />
     </LinearLayout>
 
-    <!-- Sleek In-Sheet Live Preview Canvas (High-Fidelity Wallpaper / Background Canvas) -->
+    <!-- Sleek In-Sheet Live Preview Canvas -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardStudioPreview"
         android:layout_width="match_parent"
@@ -93,50 +93,45 @@
 
             <!-- Subtle border canvas overlay -->
             <View
-                android:id="@+id/viewStudioCanvasOverlay"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_preview_canvas" />
 
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+            <TextView
+                android:id="@+id/tvStudioPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:paddingStart="14dp"
                 android:paddingTop="6dp"
                 android:paddingEnd="14dp"
-                android:paddingBottom="6dp">
+                android:paddingBottom="6dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:text="@string/dh_sample_quote"
+                android:textColor="#FFFFFF"
+                android:textDirection="anyRtl"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvStudioPreview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:maxLines="2"
-                    android:text="@string/dh_sample_quote"
-                    android:textColor="#FFFFFF"
-                    android:textDirection="anyRtl"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <!-- Canvas Contrast Mode Toggle (Dark Slate / Light Slate / Warm Parchment) -->
-                <ImageView
-                    android:id="@+id/btnStudioCanvasToggle"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="top|end"
-                    android:background="@drawable/rounded_background"
-                    android:backgroundTint="#33FFFFFF"
-                    android:contentDescription="@string/dh_toggle_canvas_contrast"
-                    android:padding="5dp"
-                    android:src="@drawable/ic_contrast_toggle"
-                    app:tint="#FFFFFF" />
-            </FrameLayout>
+            <!-- Canvas Contrast Mode Toggle -->
+            <ImageView
+                android:id="@+id/btnStudioCanvasToggle"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="@drawable/rounded_background"
+                android:backgroundTint="#33FFFFFF"
+                android:contentDescription="@string/dh_toggle_canvas_contrast"
+                android:padding="5dp"
+                android:src="@drawable/ic_contrast_toggle"
+                app:tint="#FFFFFF" />
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Studio Tab Strip (Scrollable & Dynamic with Active Badges) -->
+    <!-- Studio Tab Strip -->
     <HorizontalScrollView
         android:id="@+id/hsvStudioTabs"
         android:layout_width="match_parent"
@@ -215,7 +210,7 @@
                     android:visibility="gone" />
             </FrameLayout>
 
-            <!-- 3. Format (Size & Align) Tab -->
+            <!-- 3. Format Tab -->
             <FrameLayout
                 android:id="@+id/containerTabFormat"
                 android:layout_width="wrap_content"
@@ -312,122 +307,10 @@
                 android:scrollbars="none">
 
                 <LinearLayout
+                    android:id="@+id/containerStudioColorChips"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/chipStudioColorAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#1F2937"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_all"
-                        android:textColor="#FFFFFF"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/chipStudioColorBold"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#F3F4F6"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_bold"
-                        android:textColor="#4B5563"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/chipStudioColorNeon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#F3F4F6"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_neon"
-                        android:textColor="#4B5563"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/chipStudioColorCalm"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#F3F4F6"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_calm"
-                        android:textColor="#4B5563"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/chipStudioColorPastel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#F3F4F6"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_pastel"
-                        android:textColor="#4B5563"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/chipStudioColorDark"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#F3F4F6"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_dark"
-                        android:textColor="#4B5563"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/chipStudioColorVintage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/rounded_background"
-                        android:backgroundTint="#F3F4F6"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/dh_palette_vintage"
-                        android:textColor="#4B5563"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                    android:orientation="horizontal" />
             </HorizontalScrollView>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -794,7 +677,7 @@
                         android:splitTrack="false"
                         android:thumbTint="?attr/colorPrimary" />
 
-                    <!-- Stroke Color Category Chips -->
+                    <!-- Stroke Color Category Chips Container -->
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -804,122 +687,10 @@
                         android:scrollbars="none">
 
                         <LinearLayout
+                            android:id="@+id/containerStudioStrokeChips"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokeAll"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#1F2937"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_all"
-                                android:textColor="#FFFFFF"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokeBold"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_bold"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokeNeon"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_neon"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokeCalm"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_calm"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokePastel"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_pastel"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokeDark"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_dark"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioStrokeVintage"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_vintage"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-                        </LinearLayout>
+                            android:orientation="horizontal" />
                     </HorizontalScrollView>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -1081,7 +852,7 @@
                         android:splitTrack="false"
                         android:thumbTint="?attr/colorPrimary" />
 
-                    <!-- Ribbon Color Category Chips -->
+                    <!-- Ribbon Color Category Chips Container -->
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1091,122 +862,10 @@
                         android:scrollbars="none">
 
                         <LinearLayout
+                            android:id="@+id/containerStudioRibbonChips"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonAll"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#1F2937"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_all"
-                                android:textColor="#FFFFFF"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonBold"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_bold"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonNeon"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_neon"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonCalm"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_calm"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonPastel"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_pastel"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonDark"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_dark"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:id="@+id/chipStudioRibbonVintage"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/rounded_background"
-                                android:backgroundTint="#F3F4F6"
-                                android:fontFamily="sans-serif-medium"
-                                android:paddingStart="8dp"
-                                android:paddingTop="2dp"
-                                android:paddingEnd="8dp"
-                                android:paddingBottom="2dp"
-                                android:text="@string/dh_palette_vintage"
-                                android:textColor="#4B5563"
-                                android:textSize="11sp" />
-                        </LinearLayout>
+                            android:orientation="horizontal" />
                     </HorizontalScrollView>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -1218,19 +877,6 @@
                 </LinearLayout>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
-
-        <!-- Hidden legacy views for backwards compatibility if needed -->
-        <View
-            android:id="@+id/viewStudioStroke"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-
-        <View
-            android:id="@+id/viewStudioRibbon"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
     </FrameLayout>
 
 </LinearLayout>
