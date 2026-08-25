@@ -29,12 +29,12 @@ In your `settings.gradle.kts`:
 
 ```kotlin
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-    }
+   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+   repositories {
+      google()
+      mavenCentral()
+      maven { url = uri("https://jitpack.io") }
+   }
 }
 ```
 
@@ -44,7 +44,7 @@ In your `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-dialoghub = "1.5.1"
+dialoghub = "1.5.2"
 
 [libraries]
 dialoghub = { module = "com.github.elytelabs:dialoghub", version.ref = "dialoghub" }
@@ -64,7 +64,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("com.github.elytelabs:dialoghub:1.5.1")
+    implementation("com.github.elytelabs:dialoghub:1.5.2")
 }
 ```
 
@@ -192,6 +192,16 @@ if (quotaManager.consumeEdit()) {
     }
 }
 ```
+
+---
+
+## 4. Universal Theme Independence
+
+DialogHub is designed with **zero theme dependencies** and **crash-proof inflation safety**:
+
+- **Automatic Context Wrapping**: `DialogThemeHelper` inspects your host Activity theme. If your app uses `Theme.AppCompat`, `Theme.AppCompat.Light`, or standard Android themes without MaterialComponents, DialogHub automatically wraps the context with `Theme.MaterialComponents.DayNight.NoActionBar` to prevent XML inflation crashes.
+- **Dynamic Accent Color Extraction**: DialogHub automatically detects and applies your app's primary brand color (`colorAccent`, `colorPrimary`, or custom accent passed via `.setAccentColor(...)`).
+- **Solid Surfaces**: All dialog surfaces and cards use opaque, high-contrast surfaces to guarantee crisp legibility regardless of host activity backgrounds or theme variants.
 
 ---
 

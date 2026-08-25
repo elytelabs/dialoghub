@@ -22,6 +22,7 @@ class FontStyleAdapter(private val context: Context)
     private var fonts: List<Int> = emptyList()
     private var previewText: String? = null
     private var selectedFontResId: Int? = null
+    private var selectedPosition: Int = -1
     private var onFontClickListener: ((Int) -> Unit)? = null
     private var lockProvider: ItemLockProvider? = null
     private var onLockedItemClickListener: ((LockableItem.Font, unlock: () -> Unit) -> Unit)? = null
@@ -71,19 +72,20 @@ class FontStyleAdapter(private val context: Context)
         val isLocked = lockProvider?.isFontLocked(fontRes) == true
         holder.ivFontLockBadge.visibility = if (isLocked) View.VISIBLE else View.GONE
 
-        // Selection highlight
-        val isSelected = (!isLocked && selectedFontResId != null && selectedFontResId == fontRes)
+        // Selection highlight (strictly single-card selection with default fallback)
+        val isSelected = !isLocked && (position == selectedPosition || (selectedPosition == -1 && (position == 0 || selectedFontResId == fontRes)))
         holder.selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
-        holder.ivFontSelectedCheck.visibility = if (isSelected) View.VISIBLE else View.GONE
 
         holder.itemView.setOnClickListener {
             if (isLocked) {
                 onLockedItemClickListener?.invoke(LockableItem.Font(fontRes)) {
+                    selectedPosition = holder.bindingAdapterPosition
                     selectedFontResId = fontRes
                     notifyItemRangeChanged(0, itemCount)
                     onFontClickListener?.invoke(fontRes)
                 }
             } else {
+                selectedPosition = holder.bindingAdapterPosition
                 selectedFontResId = fontRes
                 notifyItemRangeChanged(0, itemCount)
                 onFontClickListener?.invoke(fontRes)
@@ -98,6 +100,8 @@ class FontStyleAdapter(private val context: Context)
     @SuppressLint("NotifyDataSetChanged")
     fun setFonts(font: List<Int>) {
         this.fonts = font
+        val target = selectedFontResId ?: fonts.firstOrNull()
+        this.selectedPosition = if (target != null) fonts.indexOf(target) else -1
         notifyDataSetChanged()
     }
 
@@ -110,6 +114,8 @@ class FontStyleAdapter(private val context: Context)
     @SuppressLint("NotifyDataSetChanged")
     fun setSelectedFont(fontResId: Int?) {
         this.selectedFontResId = fontResId
+        val target = fontResId ?: fonts.firstOrNull()
+        this.selectedPosition = if (target != null) fonts.indexOf(target) else -1
         notifyDataSetChanged()
     }
 
@@ -130,7 +136,6 @@ class FontStyleAdapter(private val context: Context)
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.textView)
         val selectedOverlay: View = itemView.findViewById(R.id.selectedOverlay)
-        val ivFontSelectedCheck: ImageView = itemView.findViewById(R.id.ivFontSelectedCheck)
         val ivFontLockBadge: ImageView = itemView.findViewById(R.id.ivFontLockBadge)
     }
 }

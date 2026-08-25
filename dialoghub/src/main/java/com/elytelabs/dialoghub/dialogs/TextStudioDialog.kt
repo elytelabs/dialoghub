@@ -32,6 +32,7 @@ import com.elytelabs.dialoghub.adapters.ColorAdapter
 import com.elytelabs.dialoghub.adapters.ColorSwatchAdapter
 import com.elytelabs.dialoghub.adapters.FontStyleAdapter
 import com.elytelabs.dialoghub.models.StudioTab
+import com.elytelabs.dialoghub.models.TextAlignment
 import com.elytelabs.dialoghub.models.TextTypographyConfig
 import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
 import com.elytelabs.dialoghub.monetization.ItemLockProvider
@@ -40,6 +41,7 @@ import com.elytelabs.dialoghub.utils.ColorPalettes
 import com.elytelabs.dialoghub.utils.DialogThemeHelper
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import java.util.Locale
 
@@ -81,6 +83,8 @@ private fun setupPaletteCategoryChips(
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 if (index > 0) marginStart = (4f * density).toInt()
+                topMargin = (2f * density).toInt()
+                bottomMargin = (8f * density).toInt()
             }
             layoutParams = lp
 
@@ -301,7 +305,7 @@ class TextStudioDialog(private val context: Context) {
             skipCollapsed = true
             state = BottomSheetBehavior.STATE_EXPANDED
         }
-        bottomSheet.window?.setDimAmount(0.05f)
+        bottomSheet.window?.setDimAmount(0.35f)
         bottomSheet.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         bottomSheet.setOnShowListener { dialog ->
             val d = dialog as? BottomSheetDialog
@@ -323,7 +327,7 @@ class TextStudioDialog(private val context: Context) {
 
         val btnClose = dialogView.findViewById<ImageButton>(R.id.btnClose)
         val btnReset = dialogView.findViewById<TextView>(R.id.btnStudioReset)
-        btnReset?.setTextColor(accentColor)
+        btnReset?.setTextColor("#EF4444".toColorInt())
 
         val cardPreview = dialogView.findViewById<CardView>(R.id.cardStudioPreview)
         val ivPreviewBg = dialogView.findViewById<ImageView>(R.id.ivStudioPreviewBg)
@@ -473,6 +477,15 @@ class TextStudioDialog(private val context: Context) {
             hsvStudioTabs?.visibility = View.VISIBLE
         }
 
+        val containerContent = dialogView.findViewById<android.widget.FrameLayout>(R.id.containerStudioContent)
+        if (activeEnabledItems.size == 1 && activeEnabledItems.first().tab == StudioTab.FONT && (customFonts?.size ?: 0) <= 4) {
+            containerContent?.layoutParams?.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+
+        rvFonts.isNestedScrollingEnabled = true
+        viewFormat.isNestedScrollingEnabled = true
+        viewEffects.isNestedScrollingEnabled = true
+
         fun switchTab(activeTabBtn: TextView, activeContentView: View, targetTab: StudioTab? = null) {
             if (targetTab != null && lockProvider?.isTabLocked(targetTab) == true) {
                 lockedItemClickListener?.invoke(LockableItem.StudioFeatureTab(targetTab)) {
@@ -602,12 +615,16 @@ class TextStudioDialog(private val context: Context) {
             val eff = currentConfig.effectConfig
             fun styleBtn(btn: Button?, active: Boolean) {
                 if (btn == null) return
+                val mb = btn as? MaterialButton
                 if (active) {
                     btn.backgroundTintList = accentList
                     btn.setTextColor(Color.WHITE)
+                    mb?.strokeWidth = 0
                 } else {
-                    btn.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                    btn.setTextColor("#4B5563".toColorInt())
+                    btn.backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
+                    btn.setTextColor("#374151".toColorInt())
+                    mb?.strokeWidth = (1f * themedContext.resources.displayMetrics.density).toInt()
+                    mb?.strokeColor = ColorStateList.valueOf("#E5E7EB".toColorInt())
                 }
             }
             styleBtn(btnBold, eff.isBold)
@@ -616,26 +633,59 @@ class TextStudioDialog(private val context: Context) {
             styleBtn(btnCaps, eff.isAllCaps)
         }
 
+        fun updateAlignmentToggle(alignment: com.elytelabs.dialoghub.models.TextAlignment) {
+            val checkedId = when (alignment) {
+                TextAlignment.LEFT -> R.id.btnStudioAlignLeft
+                TextAlignment.CENTER -> R.id.btnStudioAlignCenter
+                TextAlignment.RIGHT -> R.id.btnStudioAlignRight
+            }
+            tgAlignment?.check(checkedId)
+            listOf(
+                btnLeft to (checkedId == R.id.btnStudioAlignLeft),
+                btnCenter to (checkedId == R.id.btnStudioAlignCenter),
+                btnRight to (checkedId == R.id.btnStudioAlignRight)
+            ).forEach { (b, isChecked) ->
+                val mb = b as? MaterialButton
+                if (isChecked) {
+                    mb?.backgroundTintList = accentList
+                    mb?.iconTint = ColorStateList.valueOf(Color.WHITE)
+                    mb?.strokeWidth = 0
+                } else {
+                    mb?.backgroundTintList = ColorStateList.valueOf("#F3F4F6".toColorInt())
+                    mb?.iconTint = ColorStateList.valueOf("#4B5563".toColorInt())
+                    mb?.strokeWidth = (1f * themedContext.resources.displayMetrics.density).toInt()
+                    mb?.strokeColor = ColorStateList.valueOf("#E5E7EB".toColorInt())
+                }
+            }
+        }
+
         btnBold?.setOnClickListener {
             val eff = currentConfig.effectConfig
             currentConfig = currentConfig.copy(effectConfig = eff.copy(isBold = !eff.isBold))
+            updateStyleButtonsState()
             renderPreview()
         }
         btnItalic?.setOnClickListener {
             val eff = currentConfig.effectConfig
             currentConfig = currentConfig.copy(effectConfig = eff.copy(isItalic = !eff.isItalic))
+            updateStyleButtonsState()
             renderPreview()
         }
         btnUnderline?.setOnClickListener {
             val eff = currentConfig.effectConfig
             currentConfig = currentConfig.copy(effectConfig = eff.copy(isUnderline = !eff.isUnderline))
+            updateStyleButtonsState()
             renderPreview()
         }
         btnCaps?.setOnClickListener {
             val eff = currentConfig.effectConfig
             currentConfig = currentConfig.copy(effectConfig = eff.copy(isAllCaps = !eff.isAllCaps))
+            updateStyleButtonsState()
             renderPreview()
         }
+
+        updateStyleButtonsState()
+        updateAlignmentToggle(currentConfig.alignment)
 
         sbSize.progressTintList = accentList
         sbSize.thumbTintList = accentList
@@ -653,25 +703,19 @@ class TextStudioDialog(private val context: Context) {
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
 
-        fun updateAlignmentToggle(alignment: com.elytelabs.dialoghub.models.TextAlignment) {
-            when (alignment) {
-                com.elytelabs.dialoghub.models.TextAlignment.LEFT -> tgAlignment?.check(R.id.btnStudioAlignLeft)
-                com.elytelabs.dialoghub.models.TextAlignment.CENTER -> tgAlignment?.check(R.id.btnStudioAlignCenter)
-                com.elytelabs.dialoghub.models.TextAlignment.RIGHT -> tgAlignment?.check(R.id.btnStudioAlignRight)
-            }
-        }
-        updateAlignmentToggle(currentConfig.alignment)
-
         btnLeft?.setOnClickListener {
             currentConfig = currentConfig.copy(alignment = com.elytelabs.dialoghub.models.TextAlignment.LEFT)
+            updateAlignmentToggle(TextAlignment.LEFT)
             renderPreview()
         }
         btnCenter?.setOnClickListener {
             currentConfig = currentConfig.copy(alignment = com.elytelabs.dialoghub.models.TextAlignment.CENTER)
+            updateAlignmentToggle(TextAlignment.CENTER)
             renderPreview()
         }
         btnRight?.setOnClickListener {
             currentConfig = currentConfig.copy(alignment = com.elytelabs.dialoghub.models.TextAlignment.RIGHT)
+            updateAlignmentToggle(TextAlignment.RIGHT)
             renderPreview()
         }
 

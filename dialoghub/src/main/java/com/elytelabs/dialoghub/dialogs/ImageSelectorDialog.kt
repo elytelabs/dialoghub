@@ -114,7 +114,7 @@ class ImageSelectorDialog(private val context: Context) {
             peekHeight = (context.resources.displayMetrics.heightPixels * 0.65).toInt()
             state = BottomSheetBehavior.STATE_COLLAPSED
         }
-        bottomSheet.window?.setDimAmount(0.05f)
+        bottomSheet.window?.setDimAmount(0.35f)
         bottomSheet.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         bottomSheet.setOnShowListener { dialog ->
             val d = dialog as? BottomSheetDialog

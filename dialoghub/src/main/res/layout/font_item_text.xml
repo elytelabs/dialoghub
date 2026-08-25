@@ -9,7 +9,7 @@
     android:layout_marginEnd="4dp"
     android:layout_marginBottom="4dp"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="#66FFFFFF"
+    app:cardBackgroundColor="#F8FAFC"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp"
     app:cardMaxElevation="0dp">
@@ -17,8 +17,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp">
+        android:background="@drawable/bg_font_card_border">
 
         <TextView
             android:id="@+id/textView"
@@ -28,22 +27,13 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:singleLine="true"
             android:text="@string/dh_sample_quote"
             android:textColor="#1E293B"
             android:textDirection="anyRtl"
-            android:textSize="17sp" />
-
-        <ImageView
-            android:id="@+id/ivFontSelectedCheck"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="6dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_check"
-            android:visibility="gone"
-            app:tint="#3B82F6" />
+            android:textSize="16sp" />
 
         <ImageView
             android:id="@+id/ivFontLockBadge"

@@ -238,12 +238,6 @@ class MainActivity : AppCompatActivity() {
             R.font.righteous,
             R.font.salsa,
             R.font.schoolbell,
-            R.font.sofadi_one,
-            R.font.salsa,
-            R.font.schoolbell,
-            R.font.sofadi_one,
-            R.font.salsa,
-            R.font.schoolbell,
             R.font.sofadi_one
         )
 
@@ -259,7 +253,7 @@ class MainActivity : AppCompatActivity() {
             config.applyTo(textView)
         }
 
-        // ⭐ ALL-IN-ONE TEXT STUDIO
+        //  ALL-IN-ONE TEXT STUDIO
         btnTextStudio.setOnClickListener {
             checkQuotaBeforeEdit {
                 TextStudioDialog.Builder(this)
