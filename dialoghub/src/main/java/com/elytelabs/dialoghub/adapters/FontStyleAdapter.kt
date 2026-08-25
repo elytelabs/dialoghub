@@ -1,5 +1,6 @@
 package com.elytelabs.dialoghub.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
 import android.util.LruCache
@@ -42,7 +43,7 @@ class FontStyleAdapter(private val context: Context)
                 if (typeface != null) {
                     typefaceCache.put(fontRes, typeface)
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 typeface = Typeface.DEFAULT
             }
         }
@@ -62,7 +63,7 @@ class FontStyleAdapter(private val context: Context)
                 text
             }
         } else {
-            context.getString(R.string.sample_text)
+            context.getString(R.string.dh_sample_text)
         }
 
         holder.textView.text = displayText
@@ -94,21 +95,25 @@ class FontStyleAdapter(private val context: Context)
         return fonts.size
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setFonts(font: List<Int>) {
         this.fonts = font
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setPreviewText(text: String?) {
         this.previewText = text
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setSelectedFont(fontResId: Int?) {
         this.selectedFontResId = fontResId
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setLockProvider(provider: ItemLockProvider?) {
         this.lockProvider = provider
         notifyDataSetChanged()

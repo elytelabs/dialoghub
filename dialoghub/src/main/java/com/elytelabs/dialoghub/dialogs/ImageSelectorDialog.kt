@@ -1,7 +1,9 @@
 package com.elytelabs.dialoghub.dialogs
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
@@ -16,6 +18,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
 import com.elytelabs.dialoghub.monetization.ItemLockProvider
 import com.elytelabs.dialoghub.monetization.LockableItem
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Dialog for selecting background drawable images, custom photos from gallery, or custom colors.
@@ -31,7 +34,6 @@ class ImageSelectorDialog(private val context: Context) {
     private var lockProvider: ItemLockProvider? = null
     private var lockedItemClickListener: ((LockableItem, unlock: () -> Unit) -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
-    private val colorPickerDialog = ColorPickerDialog(context)
 
     /**
      * Traditional interface listener for Java/Kotlin interoperability.
@@ -64,7 +66,6 @@ class ImageSelectorDialog(private val context: Context) {
 
     fun setLockProvider(provider: ItemLockProvider?) {
         this.lockProvider = provider
-        this.colorPickerDialog.setLockProvider(provider)
     }
 
     fun setOnLockedItemClickListener(listener: (LockableItem, unlock: () -> Unit) -> Unit) {
@@ -96,6 +97,7 @@ class ImageSelectorDialog(private val context: Context) {
         showImageSelectionDialog()
     }
 
+    @SuppressLint("InflateParams")
     fun showImageSelectionDialog() {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
             return
@@ -108,9 +110,17 @@ class ImageSelectorDialog(private val context: Context) {
         bottomSheet.setContentView(dialogView)
         dialogView.setBackgroundResource(R.drawable.bg_bottom_sheet)
         bottomSheet.behavior.apply {
-            isFitToContents = true
-            skipCollapsed = true
-            state = BottomSheetBehavior.STATE_EXPANDED
+            isFitToContents = false
+            peekHeight = (context.resources.displayMetrics.heightPixels * 0.65).toInt()
+            state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        bottomSheet.window?.setDimAmount(0.05f)
+        bottomSheet.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        bottomSheet.setOnShowListener { dialog ->
+            val d = dialog as? BottomSheetDialog
+            val bottomSheetInternal = d?.findViewById<android.widget.FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheetInternal?.background = null
+            bottomSheetInternal?.setBackgroundColor(Color.TRANSPARENT)
         }
 
         bottomSheet.setOnDismissListener {
@@ -140,10 +150,19 @@ class ImageSelectorDialog(private val context: Context) {
         }
 
         adapter.setOnColorPickerClickListener {
-            colorPickerDialog.setColorSelectedListener { color ->
-                imagePickerListener?.onColorSelected(color)
-            }
-            colorPickerDialog.showColorPickerDialog()
+            TextStudioDialog.Builder(context)
+                .setTabs(com.elytelabs.dialoghub.models.StudioTab.COLOR)
+                .setShowPreviewPane(false)
+                .apply {
+                    lockProvider?.let { setLockProvider(it) }
+                    lockedItemClickListener?.let { listener ->
+                        setOnLockedItemClicked(listener)
+                    }
+                }
+                .setOnTypographyApplied { applied ->
+                    imagePickerListener?.onColorSelected(applied.textColor)
+                }
+                .show()
             bottomSheet.dismiss()
         }
 

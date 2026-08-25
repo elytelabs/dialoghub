@@ -4,16 +4,11 @@ import android.graphics.Color
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.toColorInt
-import com.elytelabs.dialoghub.dialogs.TextFormatDialog
-
-/**
- * Encapsulates full typography, visual effects, and styling configuration for quotes and text editors.
- */
 data class TextTypographyConfig(
     val fontResId: Int? = null,
     val textColor: Int = "#FFFFFF".toColorInt(),
     val textSizeSp: Float = 20f,
-    val alignment: TextFormatDialog.TextAlignment = TextFormatDialog.TextAlignment.CENTER,
+    val alignment: TextAlignment = TextAlignment.CENTER,
     val effectConfig: TextEffectConfig = TextEffectConfig(),
     val strokeConfig: TextStrokeConfig = TextStrokeConfig(),
     val highlightConfig: TextHighlightConfig = TextHighlightConfig()

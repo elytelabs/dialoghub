@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
-            android:text="@string/choose_background"
+            android:text="@string/dh_choose_background"
             android:textColor="#1F2937"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -43,7 +43,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="?actionBarItemBackground"
-            android:contentDescription="Close"
+            android:contentDescription="@string/dh_close"
             android:src="@drawable/ic_close" />
     </LinearLayout>
 

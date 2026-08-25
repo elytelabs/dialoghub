@@ -2,6 +2,7 @@ package com.elytelabs.dialoghub.monetization
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import java.util.concurrent.TimeUnit
 
 /**
@@ -40,7 +41,7 @@ class TimedPassManager(context: Context) {
         } else {
             now + durationMillis
         }
-        prefs.edit().putLong(KEY_PASS_EXPIRY_MS, newExpiry).apply()
+        prefs.edit { putLong(KEY_PASS_EXPIRY_MS, newExpiry) }
         return newExpiry
     }
 
@@ -89,6 +90,6 @@ class TimedPassManager(context: Context) {
      * Revokes any active timed pass immediately.
      */
     fun revokePass() {
-        prefs.edit().remove(KEY_PASS_EXPIRY_MS).apply()
+        prefs.edit { remove(KEY_PASS_EXPIRY_MS) }
     }
 }

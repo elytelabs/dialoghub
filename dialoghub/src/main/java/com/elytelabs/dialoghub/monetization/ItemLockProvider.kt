@@ -13,7 +13,6 @@ interface ItemLockProvider {
     fun isColorLocked(colorInt: Int): Boolean = false
     fun isTabLocked(tab: StudioTab): Boolean = false
     fun isGalleryLocked(): Boolean = false
-    fun isHexInputLocked(): Boolean = false
 }
 
 /**
@@ -33,7 +32,6 @@ class DefaultItemLockProvider(
     private val lockedColors = mutableSetOf<Int>()
     private val lockedTabs = mutableSetOf<StudioTab>()
     private var lockGallery = false
-    private var lockHexInput = false
 
     private var fontPredicate: ((Int) -> Boolean)? = null
     private var backgroundPredicate: ((Int) -> Boolean)? = null
@@ -112,7 +110,6 @@ class DefaultItemLockProvider(
 
     // Action Tiles
     fun lockGallery(lock: Boolean = true) = apply { this.lockGallery = lock }
-    fun lockHexInput(lock: Boolean = true) = apply { this.lockHexInput = lock }
 
     // Reset / Unlock All
     fun unlockAll() = apply {
@@ -121,7 +118,6 @@ class DefaultItemLockProvider(
         lockedColors.clear()
         lockedTabs.clear()
         lockGallery = false
-        lockHexInput = false
         fontPredicate = null
         backgroundPredicate = null
         colorPredicate = null
@@ -151,10 +147,5 @@ class DefaultItemLockProvider(
     override fun isGalleryLocked(): Boolean {
         if (isPassActive()) return false
         return lockGallery
-    }
-
-    override fun isHexInputLocked(): Boolean {
-        if (isPassActive()) return false
-        return lockHexInput
     }
 }

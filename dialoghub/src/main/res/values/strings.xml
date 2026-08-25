@@ -1,17 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="choose_style">Choose Style</string>
-    <string name="choose_color">Choose Color</string>
-    <string name="choose_background">Choose Background</string>
-    <string name="sample_text">Sample Text</string>
-    <string name="transparency">Transparency</string>
-    <string name="back_button">Back Button</string>
-    <string name="format_text">Text Format</string>
-    <string name="text_size">Text Size</string>
-    <string name="text_alignment">Alignment</string>
-    <string name="align_left">Left</string>
-    <string name="align_center">Center</string>
-    <string name="align_right">Right</string>
-    <string name="pick_from_gallery">Gallery</string>
-    <string name="color_wheel_title">Color</string>
+    <string name="dh_app_name">DialogHub</string>
+    <string name="dh_text_studio">Text Studio</string>
+    <string name="dh_choose_font">Choose Font</string>
+    <string name="dh_choose_color">Choose Color</string>
+    <string name="dh_choose_background">Choose Background</string>
+    <string name="dh_reset">Reset</string>
+    <string name="dh_close">Close</string>
+    <string name="dh_sample_quote">Sample Quote / نمونہ کلام</string>
+    <string name="dh_toggle_canvas_contrast">Toggle Canvas Contrast</string>
+    
+    <string name="dh_tab_font">Font</string>
+    <string name="dh_tab_color">Color</string>
+    <string name="dh_tab_format">Format</string>
+    <string name="dh_tab_effects">Effects</string>
+
+    <string name="dh_palette_all">All</string>
+    <string name="dh_palette_bold">Bold</string>
+    <string name="dh_palette_neon">Neon</string>
+    <string name="dh_palette_calm">Calm</string>
+    <string name="dh_palette_pastel">Pastel</string>
+    <string name="dh_palette_dark">Dark</string>
+    <string name="dh_palette_vintage">Vintage</string>
+
+    <string name="dh_text_size">Text Size</string>
+    <string name="dh_alignment">Alignment</string>
+    <string name="dh_text_style">Text Style</string>
+    <string name="dh_letter_spacing">Letter Spacing</string>
+    <string name="dh_line_spacing">Line Spacing</string>
+
+    <string name="dh_stroke_width">Stroke Width</string>
+    <string name="dh_drop_shadow_blur">Drop Shadow Blur</string>
+    <string name="dh_shadow_color">Shadow Color</string>
+    <string name="dh_ribbon_roundness">Ribbon Roundness</string>
+
+    <string name="dh_locked">Locked</string>
+    <string name="dh_gallery">Gallery</string>
+    <string name="dh_sample_text">Sample Text</string>
+    <string name="dh_pick_from_gallery">Gallery</string>
+    <string name="dh_color_wheel_title">Color Palette</string>
 </resources>

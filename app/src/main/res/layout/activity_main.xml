@@ -206,24 +206,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="10dp"
-                android:text="5. Text Effects Dialog (Shadow, Spacing, Styles)"
-                android:textAllCaps="false" />
-
-            <Button
-                android:id="@+id/btnStrokeSelector"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="10dp"
-                android:text="6. Text Stroke &amp; Outline Dialog"
-                android:textAllCaps="false" />
-
-            <Button
-                android:id="@+id/btnHighlightSelector"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="10dp"
                 android:layout_marginBottom="24dp"
-                android:text="7. Text Background Ribbon Dialog"
+                android:text="5. Text Effects (Stroke, Shadow, Highlight)"
                 android:textAllCaps="false" />
 
         </LinearLayout>

@@ -20,19 +20,15 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.elytelabs.dialoghub.demo.R
-import com.elytelabs.dialoghub.dialogs.TextFormatDialog
-import com.elytelabs.dialoghub.dsl.showColorPickerDialog
-import com.elytelabs.dialoghub.dsl.showFontStyleDialog
-import com.elytelabs.dialoghub.dsl.showImageSelectorDialog
-import com.elytelabs.dialoghub.dsl.showTextEffectsDialog
-import com.elytelabs.dialoghub.dsl.showTextFormatDialog
-import com.elytelabs.dialoghub.dsl.showTextHighlightDialog
-import com.elytelabs.dialoghub.dsl.showTextStrokeDialog
-import com.elytelabs.dialoghub.dsl.showTextStudioDialog
+import com.elytelabs.dialoghub.dialogs.ImageSelectorDialog
+import com.elytelabs.dialoghub.dialogs.TextStudioDialog
+import com.elytelabs.dialoghub.models.StudioTab
+import com.elytelabs.dialoghub.models.TextAlignment
 import com.elytelabs.dialoghub.models.TextTypographyConfig
 import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
 import com.elytelabs.dialoghub.monetization.LockableItem
 import com.elytelabs.dialoghub.monetization.UsageQuotaManager
+import androidx.core.graphics.toColorInt
 
 class MainActivity : AppCompatActivity() {
 
@@ -54,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     private var currentTypography = TextTypographyConfig(
         textColor = Color.WHITE,
         textSizeSp = 18f,
-        alignment = TextFormatDialog.TextAlignment.CENTER
+        alignment = TextAlignment.CENTER
     )
 
     private fun updateActiveBackground(resId: Int? = null, color: Int? = null, drawable: Drawable? = null) {
@@ -97,18 +93,18 @@ class MainActivity : AppCompatActivity() {
     private fun updateQuotaUI() {
         if (quotaManager.isProUser()) {
             tvQuotaStatus.text = "VIP PRO Status: Unlimited Free Access!"
-            tvProBadge.text = "👑 PRO VIP"
-            tvProBadge.setBackgroundColor(Color.parseColor("#10B981"))
+            tvProBadge.text = " PRO VIP"
+            tvProBadge.setBackgroundColor("#10B981".toColorInt())
         } else if (lockProvider.isPassActive()) {
             val remaining = lockProvider.getRemainingPassFormatted()
             tvQuotaStatus.text = "12-Hour VIP Pass Active: $remaining left"
             tvProBadge.text = "⏱ 12H PASS"
-            tvProBadge.setBackgroundColor(Color.parseColor("#F59E0B"))
+            tvProBadge.setBackgroundColor("#F59E0B".toColorInt())
         } else {
             val remaining = quotaManager.getRemainingEdits()
             tvQuotaStatus.text = "Daily Free Quota: $remaining edits left"
             tvProBadge.text = "FREE TIER"
-            tvProBadge.setBackgroundColor(Color.parseColor("#3B82F6"))
+            tvProBadge.setBackgroundColor("#3B82F6".toColorInt())
         }
     }
 
@@ -131,7 +127,6 @@ class MainActivity : AppCompatActivity() {
             is LockableItem.Color -> "VIP Color"
             is LockableItem.StudioFeatureTab -> "Premium Studio Tool (${item.tab.name})"
             is LockableItem.GalleryPicker -> "Gallery Import"
-            is LockableItem.CustomHexInput -> "Custom Hex Code"
         }
 
         AlertDialog.Builder(this)
@@ -257,8 +252,6 @@ class MainActivity : AppCompatActivity() {
         val btnColorSelector: Button = findViewById(R.id.btnColorSelector)
         val btnFormatSelector: Button = findViewById(R.id.btnFormatSelector)
         val btnEffectsSelector: Button = findViewById(R.id.btnEffectsSelector)
-        val btnStrokeSelector: Button = findViewById(R.id.btnStrokeSelector)
-        val btnHighlightSelector: Button = findViewById(R.id.btnHighlightSelector)
         val btnTextStudio: Button = findViewById(R.id.btnTextStudio)
 
         fun syncTypography(config: TextTypographyConfig) {
@@ -269,132 +262,122 @@ class MainActivity : AppCompatActivity() {
         // ⭐ ALL-IN-ONE TEXT STUDIO
         btnTextStudio.setOnClickListener {
             checkQuotaBeforeEdit {
-                showTextStudioDialog {
-                    setConfig(currentTypography)
-                    setPreviewText(textView.text.toString())
-                    setFonts(fonts)
-                    setBackgroundDrawable(rootLayout.background)
-                    setBackgroundRes(currentBackgroundRes)
-                    setBackgroundColor(currentColor)
-                    setLockProvider(lockProvider)
-                    setOnLockedItemClicked { item, onUnlocked ->
+                TextStudioDialog.Builder(this)
+                    .setConfig(currentTypography)
+                    .setPreviewText(textView.text.toString())
+                    .setFonts(fonts)
+                    .setBackgroundDrawable(rootLayout.background)
+                    .setBackgroundRes(currentBackgroundRes)
+                    .setBackgroundColor(currentColor)
+                    .setLockProvider(lockProvider)
+                    .setOnLockedItemClicked { item, onUnlocked ->
                         handleLockedItem(item, onUnlocked)
                     }
-                    setOnLivePreviewListener { liveConfig ->
+                    .setOnLivePreviewListener { liveConfig ->
                         syncTypography(liveConfig)
                     }
-                    setOnTypographyApplied { applied ->
+                    .setOnTypographyApplied { applied ->
                         syncTypography(applied)
                     }
-                }
+                    .show()
             }
         }
 
         // 1. Background Image / Gallery / Color Selector
         btnImageSelector.setOnClickListener {
             checkQuotaBeforeEdit {
-                showImageSelectorDialog {
-                    setBackgrounds(backgrounds)
-                    setSelectedBackground(currentBackgroundRes)
-                    setEnableGalleryPick(true) { galleryLauncher.launch("image/*") }
-                    setLockProvider(lockProvider)
-                    setOnLockedItemClicked { item, onUnlocked ->
+                ImageSelectorDialog.Builder(this)
+                    .setBackgrounds(backgrounds)
+                    .setSelectedBackground(currentBackgroundRes)
+                    .setEnableGalleryPick(true) { galleryLauncher.launch("image/*") }
+                    .setLockProvider(lockProvider)
+                    .setOnLockedItemClicked { item, onUnlocked ->
                         handleLockedItem(item, onUnlocked)
                     }
-                    setOnImageSelected { resId ->
+                    .setOnImageSelected { resId ->
                         updateActiveBackground(resId = resId)
                     }
-                    setOnColorSelected { color ->
+                    .setOnColorSelected { color ->
                         updateActiveBackground(color = color)
                     }
-                }
+                    .show()
             }
         }
 
-        // 2. Font Style Selector with Custom Preview Text
+        // 2. Font Tab
         btnFontSelector.setOnClickListener {
             checkQuotaBeforeEdit {
-                showFontStyleDialog {
-                    setFonts(fonts)
-                    setPreviewText("Sample / اردو")
-                    setSelectedFont(currentTypography.fontResId)
-                    setLockProvider(lockProvider)
-                    setOnLockedItemClicked { item, onUnlocked ->
+                TextStudioDialog.Builder(this)
+                    .setConfig(currentTypography)
+                    .setFonts(fonts)
+                    .setTabs(StudioTab.FONT)
+                    .setShowPreviewPane(false)
+                    .setLockProvider(lockProvider)
+                    .setOnLockedItemClicked { item, onUnlocked ->
                         handleLockedItem(item, onUnlocked)
                     }
-                    setOnFontSelected { fontResId ->
-                        syncTypography(currentTypography.copy(fontResId = fontResId))
+                    .setOnLivePreviewListener { liveConfig ->
+                        syncTypography(liveConfig)
                     }
-                }
+                    .setOnTypographyApplied { applied ->
+                        syncTypography(applied)
+                    }
+                    .show()
             }
         }
 
-        // 3. Color Picker with Transparency & Live Preview
+        // 3. Color Tab
         btnColorSelector.setOnClickListener {
             checkQuotaBeforeEdit {
-                showColorPickerDialog {
-                    setSelectedColor(currentTypography.textColor)
-                    setLockProvider(lockProvider)
-                    setOnLockedItemClicked { item, onUnlocked ->
+                TextStudioDialog.Builder(this)
+                    .setConfig(currentTypography)
+                    .setTabs(StudioTab.COLOR)
+                    .setShowPreviewPane(false)
+                    .setLockProvider(lockProvider)
+                    .setOnLockedItemClicked { item, onUnlocked ->
                         handleLockedItem(item, onUnlocked)
                     }
-                    setOnColorSelected { color ->
-                        syncTypography(currentTypography.copy(textColor = color))
+                    .setOnLivePreviewListener { liveConfig ->
+                        syncTypography(liveConfig)
                     }
-                }
+                    .setOnTypographyApplied { applied ->
+                        syncTypography(applied)
+                    }
+                    .show()
             }
         }
 
-        // 4. Text Format Dialog (Live Preview, Text Size & Alignment)
+        // 4. Format Tab
         btnFormatSelector.setOnClickListener {
             checkQuotaBeforeEdit {
-                showTextFormatDialog {
-                    setTextSize(currentTypography.textSizeSp)
-                    setAlignment(currentTypography.alignment)
-                    setPreviewText(textView.text.toString())
-                    setOnFormatChanged { size, alignment ->
-                        syncTypography(currentTypography.copy(textSizeSp = size, alignment = alignment))
+                TextStudioDialog.Builder(this)
+                    .setConfig(currentTypography)
+                    .setTabs(StudioTab.FORMAT)
+                    .setShowPreviewPane(false)
+                    .setOnLivePreviewListener { liveConfig ->
+                        syncTypography(liveConfig)
                     }
-                }
+                    .setOnTypographyApplied { applied ->
+                        syncTypography(applied)
+                    }
+                    .show()
             }
         }
 
-        // 5. Text Effects Dialog (Styles, Drop Shadow, Letter Spacing, Line Spacing)
+        // 5. Effects Tab
         btnEffectsSelector.setOnClickListener {
             checkQuotaBeforeEdit {
-                showTextEffectsDialog {
-                    setConfig(currentTypography.effectConfig)
-                    setPreviewText(textView.text.toString())
-                    setOnEffectsChanged { config ->
-                        syncTypography(currentTypography.copy(effectConfig = config))
+                TextStudioDialog.Builder(this)
+                    .setConfig(currentTypography)
+                    .setTabs(StudioTab.EFFECTS)
+                    .setShowPreviewPane(false)
+                    .setOnLivePreviewListener { liveConfig ->
+                        syncTypography(liveConfig)
                     }
-                }
-            }
-        }
-
-        // 6. Text Stroke & Outline Dialog
-        btnStrokeSelector.setOnClickListener {
-            checkQuotaBeforeEdit {
-                showTextStrokeDialog {
-                    setConfig(currentTypography.strokeConfig)
-                    setPreviewText(textView.text.toString())
-                    setOnStrokeChanged { config ->
-                        syncTypography(currentTypography.copy(strokeConfig = config))
+                    .setOnTypographyApplied { applied ->
+                        syncTypography(applied)
                     }
-                }
-            }
-        }
-
-        // 7. Text Background Ribbon Dialog
-        btnHighlightSelector.setOnClickListener {
-            checkQuotaBeforeEdit {
-                showTextHighlightDialog {
-                    setConfig(currentTypography.highlightConfig)
-                    setPreviewText(textView.text.toString())
-                    setOnHighlightChanged { config ->
-                        syncTypography(currentTypography.copy(highlightConfig = config))
-                    }
-                }
+                    .show()
             }
         }
     }

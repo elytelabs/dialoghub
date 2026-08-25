@@ -23,7 +23,7 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/choose_background"
+            android:contentDescription="@string/dh_choose_background"
             android:scaleType="fitXY"
             tools:srcCompat="@tools:sample/avatars" />
 
@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/pick_from_gallery"
+                android:text="@string/dh_gallery"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
@@ -65,7 +65,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_lock_badge"
-            android:contentDescription="Locked"
+            android:contentDescription="@string/dh_locked"
             android:padding="4dp"
             android:src="@drawable/ic_lock_badge"
             android:visibility="gone" />

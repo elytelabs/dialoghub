@@ -1,11 +1,13 @@
 package com.elytelabs.dialoghub.adapters
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.elytelabs.dialoghub.R
 import com.elytelabs.toolbox.ColorGenerator
@@ -39,7 +41,7 @@ class ColorSwatchAdapter(
 
         if (isNoneItem) {
             // None / Transparent tile
-            holder.cardColorSwatch.setCardBackgroundColor(Color.parseColor("#F1F5F9"))
+            holder.cardColorSwatch.setCardBackgroundColor("#F1F5F9".toColorInt())
             holder.viewSwatchColor.setBackgroundColor(Color.TRANSPARENT)
             holder.ivNoneIcon.visibility = View.VISIBLE
             holder.ivSelectedCheck.visibility = View.GONE
@@ -73,7 +75,7 @@ class ColorSwatchAdapter(
             if (isSelected) {
                 holder.viewActiveRing.visibility = View.VISIBLE
                 holder.ivSelectedCheck.visibility = View.VISIBLE
-                val checkColor = if (ColorGenerator.isDarkColor(color)) Color.WHITE else Color.parseColor("#1E293B")
+                val checkColor = if (ColorGenerator.isDarkColor(color)) Color.WHITE else "#1E293B".toColorInt()
                 holder.ivSelectedCheck.setColorFilter(checkColor)
             } else {
                 holder.viewActiveRing.visibility = View.GONE
@@ -102,17 +104,20 @@ class ColorSwatchAdapter(
         return if (includeNoneOption) colors.size + 1 else colors.size
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setColors(colors: List<Int>) {
         this.colors = colors
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setSelectedColor(color: Int?, isNone: Boolean = false) {
         this.selectedColor = color
         this.isNoneSelected = isNone
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setLockProvider(provider: ItemLockProvider?) {
         this.lockProvider = provider
         notifyDataSetChanged()

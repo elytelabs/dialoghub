@@ -30,9 +30,4 @@ sealed class LockableItem {
      * Gallery picker option tile locked behind VIP/IAP or Rewarded Ads.
      */
     data object GalleryPicker : LockableItem()
-
-    /**
-     * Custom Hex Code input dialog locked behind VIP/IAP or Rewarded Ads.
-     */
-    data object CustomHexInput : LockableItem()
 }

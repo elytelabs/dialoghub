@@ -1,5 +1,6 @@
 package com.elytelabs.dialoghub.adapters
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -79,6 +80,7 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         return colors.size
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setColors(colors: List<Int>) {
         this.colors = colors
         notifyDataSetChanged()
@@ -88,6 +90,7 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         this.transparency = transparency
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setSelectedColor(color: Int?) {
         this.selectedColor = color
         notifyDataSetChanged()
@@ -97,6 +100,7 @@ class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
         return selectedColor
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setLockProvider(provider: ItemLockProvider?) {
         this.lockProvider = provider
         notifyDataSetChanged()

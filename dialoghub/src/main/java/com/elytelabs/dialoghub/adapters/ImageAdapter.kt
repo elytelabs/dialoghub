@@ -1,5 +1,6 @@
 package com.elytelabs.dialoghub.adapters
 
+import android.annotation.SuppressLint
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -63,7 +64,7 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                 holder.actionTileLayout.visibility = View.VISIBLE
                 holder.actionTileLayout.setBackgroundResource(R.drawable.bg_tile_gallery)
                 holder.actionTileIcon.setImageResource(R.drawable.ic_tile_gallery)
-                holder.tileLabel.setText(R.string.pick_from_gallery)
+                holder.tileLabel.setText(R.string.dh_pick_from_gallery)
                 holder.selectedOverlay.visibility = View.GONE
 
                 val isGalleryLocked = lockProvider?.isGalleryLocked() == true
@@ -85,7 +86,7 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                 holder.actionTileLayout.visibility = View.VISIBLE
                 holder.actionTileLayout.setBackgroundResource(R.drawable.bg_tile_color)
                 holder.actionTileIcon.setImageResource(R.drawable.ic_tile_palette)
-                holder.tileLabel.setText(R.string.color_wheel_title)
+                holder.tileLabel.setText(R.string.dh_color_wheel_title)
                 holder.selectedOverlay.visibility = View.GONE
                 holder.ivImageLockBadge.visibility = View.GONE
 
@@ -107,7 +108,7 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                 } else {
                     try {
                         holder.imageView.setImageResource(imageResource)
-                    } catch (e: OutOfMemoryError) {
+                    } catch (_: OutOfMemoryError) {
                         holder.imageView.setImageDrawable(null)
                     }
                 }
@@ -141,21 +142,25 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
         return backgrounds.size + extra
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setBackgrounds(backgrounds: List<Int>) {
         this.backgrounds = backgrounds
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setEnableGalleryPick(enable: Boolean) {
         this.enableGalleryPick = enable
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setSelectedBackground(resId: Int?) {
         this.selectedBackgroundResId = resId
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setLockProvider(provider: ItemLockProvider?) {
         this.lockProvider = provider
         notifyDataSetChanged()
@@ -197,9 +202,9 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                 thumbnailCache.put(resId, bitmap)
             }
             bitmap
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
-        } catch (oom: OutOfMemoryError) {
+        } catch (_: OutOfMemoryError) {
             thumbnailCache.evictAll()
             null
         }

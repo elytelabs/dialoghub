@@ -1,6 +1,7 @@
 package com.elytelabs.dialoghub
 
 import com.elytelabs.dialoghub.models.StudioTab
+import com.elytelabs.dialoghub.models.TextEffectConfig
 import com.elytelabs.dialoghub.models.TextHighlightConfig
 import com.elytelabs.dialoghub.models.TextStrokeConfig
 import com.elytelabs.dialoghub.models.TextTypographyConfig
@@ -45,6 +46,18 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun textEffectConfig_copyAndProperties_workCorrectly() {
+        val config = TextEffectConfig(isBold = true, shadowRadius = 8f)
+        assertTrue(config.isBold)
+        assertFalse(config.isItalic)
+        assertEquals(8f, config.shadowRadius)
+
+        val updated = config.copy(isItalic = true, letterSpacing = 0.15f)
+        assertTrue(updated.isItalic)
+        assertEquals(0.15f, updated.letterSpacing)
+    }
+
+    @Test
     fun colorPalettes_returnsValidPalettes() {
         val allColors = ColorPalettes.ALL_CURATED
         assertTrue(allColors.isNotEmpty())
@@ -72,24 +85,21 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun studioTab_allTabsAndCustomFiltering_workCorrectly() {
+    fun studioTab_canonical4Tabs_workCorrectly() {
         val defaultTabs = StudioTab.DEFAULT
-        assertEquals(6, defaultTabs.size)
+        assertEquals(4, defaultTabs.size)
         assertTrue(defaultTabs.contains(StudioTab.FONT))
+        assertTrue(defaultTabs.contains(StudioTab.COLOR))
+        assertTrue(defaultTabs.contains(StudioTab.FORMAT))
+        assertTrue(defaultTabs.contains(StudioTab.EFFECTS))
 
         val allTabs = StudioTab.ALL
-        assertEquals(6, allTabs.size)
-        assertTrue(allTabs.contains(StudioTab.COLOR))
-        assertTrue(allTabs.contains(StudioTab.FONT))
-        assertTrue(allTabs.contains(StudioTab.FORMAT))
-        assertTrue(allTabs.contains(StudioTab.EFFECTS))
-        assertTrue(allTabs.contains(StudioTab.STROKE))
-        assertTrue(allTabs.contains(StudioTab.RIBBON))
+        assertEquals(4, allTabs.size)
 
         // Custom subset
         val subset = setOf(StudioTab.FONT, StudioTab.COLOR)
         assertEquals(2, subset.size)
-        assertFalse(subset.contains(StudioTab.STROKE))
+        assertFalse(subset.contains(StudioTab.EFFECTS))
     }
 
     @Test
@@ -109,8 +119,8 @@ class ExampleUnitTest {
         assertTrue(provider.isBackgroundLocked(202))
         assertFalse(provider.isBackgroundLocked(203))
 
-        provider.lockTabs(StudioTab.RIBBON)
-        assertTrue(provider.isTabLocked(StudioTab.RIBBON))
+        provider.lockTabs(StudioTab.EFFECTS)
+        assertTrue(provider.isTabLocked(StudioTab.EFFECTS))
         assertFalse(provider.isTabLocked(StudioTab.FONT))
 
         provider.lockGallery(true)
@@ -118,20 +128,8 @@ class ExampleUnitTest {
 
         provider.unlockAll()
         assertFalse(provider.isBackgroundLocked(201))
-        assertFalse(provider.isTabLocked(StudioTab.RIBBON))
+        assertFalse(provider.isTabLocked(StudioTab.EFFECTS))
         assertFalse(provider.isGalleryLocked())
-    }
-
-    @Test
-    fun selectedBackground_types_workCorrectly() {
-        val img = com.elytelabs.dialoghub.models.SelectedBackground.Image(12345)
-        assertEquals(12345, img.drawableResId)
-
-        val color = com.elytelabs.dialoghub.models.SelectedBackground.Color(0xFF0000)
-        assertEquals(0xFF0000, color.colorInt)
-
-        val gallery = com.elytelabs.dialoghub.models.SelectedBackground.GalleryRequested
-        assertEquals(com.elytelabs.dialoghub.models.SelectedBackground.GalleryRequested, gallery)
     }
 
     @Test

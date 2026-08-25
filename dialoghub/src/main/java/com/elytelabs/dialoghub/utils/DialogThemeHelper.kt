@@ -3,6 +3,7 @@ package com.elytelabs.dialoghub.utils
 import android.content.Context
 import android.util.TypedValue
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.graphics.toColorInt
 
 internal object DialogThemeHelper {
     /**
@@ -27,5 +28,37 @@ internal object DialogThemeHelper {
                 com.google.android.material.R.style.Theme_MaterialComponents_DayNight_NoActionBar
             )
         }
+    }
+
+    /**
+     * Dynamically resolves the host application's primary accent color at runtime.
+     * Checks colorAccent, colorPrimary, and falls back gracefully.
+     */
+    fun resolveThemeAccentColor(context: Context): Int {
+        val typedValue = TypedValue()
+        val theme = context.theme
+
+        // 1. Check colorAccent
+        if (theme.resolveAttribute(androidx.appcompat.R.attr.colorAccent, typedValue, true)) {
+            if (typedValue.type in TypedValue.TYPE_FIRST_COLOR_INT..TypedValue.TYPE_LAST_COLOR_INT) {
+                return typedValue.data
+            }
+        }
+
+        // 2. Check androidx colorPrimary
+        if (theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, typedValue, true)) {
+            if (typedValue.type in TypedValue.TYPE_FIRST_COLOR_INT..TypedValue.TYPE_LAST_COLOR_INT) {
+                return typedValue.data
+            }
+        }
+
+        // 3. Check framework colorPrimary
+        if (theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)) {
+            if (typedValue.type in TypedValue.TYPE_FIRST_COLOR_INT..TypedValue.TYPE_LAST_COLOR_INT) {
+                return typedValue.data
+            }
+        }
+
+        return "#10B981".toColorInt()
     }
 }
