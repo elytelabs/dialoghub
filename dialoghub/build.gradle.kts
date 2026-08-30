@@ -63,7 +63,7 @@ afterEvaluate {
             register<MavenPublication>("release") {
                 groupId = "com.elytelabs.dialoghub"
                 artifactId = "dialoghub"
-                version = "1.5.3"
+                version = "1.5.4"
                 from(components["release"])
 
                 pom {
