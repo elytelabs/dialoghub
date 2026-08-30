@@ -44,7 +44,7 @@ In your `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-dialoghub = "1.5.2"
+dialoghub = "LATEST_VERSION" # Check JitPack badge above for latest tag
 
 [libraries]
 dialoghub = { module = "com.github.elytelabs:dialoghub", version.ref = "dialoghub" }
@@ -64,7 +64,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("com.github.elytelabs:dialoghub:1.5.2")
+   implementation("com.github.elytelabs:dialoghub:LATEST_VERSION")
 }
 ```
 
@@ -78,32 +78,32 @@ The flagship dialog that unifies all typography editing tools into a single, coh
 
 ```kotlin
 TextStudioDialog.Builder(this)
-    .setConfig(currentTypographyConfig)
-    .setPreviewText("Stay Hungry, Stay Foolish")
-    .setFonts(listOf(R.font.font1, R.font.font2, R.font.font3))
-    
-    // Optional: filter tabs or open focused on a specific tool (StudioTab.FONT, COLOR, FORMAT, EFFECTS)
-    .setTabs(StudioTab.FONT, StudioTab.COLOR, StudioTab.FORMAT, StudioTab.EFFECTS)
-    
-    // Optional: set custom preview wallpaper canvas
-    .setBackgroundRes(R.drawable.my_wallpaper)
-    
-    // Optional: attach monetization lock provider
-    .setLockProvider(lockProvider)
-    .setOnLockedItemClicked { item, onUnlocked ->
-        handleRewardedAd(item, onUnlocked)
-    }
-    
-    // Real-time live preview (updates TextView on screen as user tweaks sliders)
-    .setOnLivePreviewListener { liveConfig ->
-        liveConfig.applyTo(textView)
-    }
-    
-    // Final confirmed result upon dismissal
-    .setOnTypographyApplied { config ->
-        config.applyTo(textView)
-    }
-    .show()
+   .setConfig(currentTypographyConfig)
+   .setPreviewText("Stay Hungry, Stay Foolish")
+   .setFonts(listOf(R.font.font1, R.font.font2, R.font.font3))
+
+   // Optional: filter tabs or open focused on a specific tool (StudioTab.FONT, COLOR, FORMAT, EFFECTS)
+   .setTabs(StudioTab.FONT, StudioTab.COLOR, StudioTab.FORMAT, StudioTab.EFFECTS)
+
+   // Optional: set custom preview wallpaper canvas
+   .setBackgroundRes(R.drawable.my_wallpaper)
+
+   // Optional: attach monetization lock provider
+   .setLockProvider(lockProvider)
+   .setOnLockedItemClicked { item, onUnlocked ->
+      handleRewardedAd(item, onUnlocked)
+   }
+
+   // Real-time live preview (updates TextView on screen as user tweaks sliders)
+   .setOnLivePreviewListener { liveConfig ->
+      liveConfig.applyTo(textView)
+   }
+
+   // Final confirmed result upon dismissal
+   .setOnTypographyApplied { config ->
+      config.applyTo(textView)
+   }
+   .show()
 ```
 
 ### 4 Canonical Studio Tabs
@@ -124,22 +124,22 @@ Allows users to pick background images from drawables, select photos from device
 
 ```kotlin
 ImageSelectorDialog.Builder(this)
-    .setBackgrounds(listOf(R.drawable.bg1, R.drawable.bg2, R.drawable.bg3))
-    .setSelectedBackground(currentBackgroundResId)
-    .setEnableGalleryPick(true) {
-        galleryLauncher.launch("image/*")
-    }
-    .setLockProvider(lockProvider)
-    .setOnLockedItemClicked { item, onUnlocked ->
-        handleRewardedAd(item, onUnlocked)
-    }
-    .setOnImageSelected { drawableResId ->
-        rootLayout.setBackgroundResource(drawableResId)
-    }
-    .setOnColorSelected { colorInt ->
-        rootLayout.setBackgroundColor(colorInt)
-    }
-    .show()
+   .setBackgrounds(listOf(R.drawable.bg1, R.drawable.bg2, R.drawable.bg3))
+   .setSelectedBackground(currentBackgroundResId)
+   .setEnableGalleryPick(true) {
+      galleryLauncher.launch("image/*")
+   }
+   .setLockProvider(lockProvider)
+   .setOnLockedItemClicked { item, onUnlocked ->
+      handleRewardedAd(item, onUnlocked)
+   }
+   .setOnImageSelected { drawableResId ->
+      rootLayout.setBackgroundResource(drawableResId)
+   }
+   .setOnColorSelected { colorInt ->
+      rootLayout.setBackgroundColor(colorInt)
+   }
+   .show()
 ```
 
 ---
@@ -151,30 +151,30 @@ DialogHub is 100% independent and decoupled from Google AdMob or Google Play Bil
 ```kotlin
 // 1. Initialize lock provider and attach 12-Hour Timed Pass manager
 val lockProvider = DefaultItemLockProvider()
-    .attachTimedPass(this)
-    .lockFonts(R.font.font_pro1, R.font.font_pro2) // Lock VIP fonts
-    .lockBackgrounds(R.drawable.bg_premium)        // Lock VIP wallpapers
-    .lockTab(StudioTab.EFFECTS)                    // Lock premium tool tabs
+   .attachTimedPass(this)
+   .lockFonts(R.font.font_pro1, R.font.font_pro2) // Lock VIP fonts
+   .lockBackgrounds(R.drawable.bg_premium)        // Lock VIP wallpapers
+   .lockTab(StudioTab.EFFECTS)                    // Lock premium tool tabs
 
 // 2. Launch Text Studio with lock provider and ad callback
 TextStudioDialog.Builder(this)
-    .setConfig(currentTypography)
-    .setFonts(fontList)
-    .setLockProvider(lockProvider)
-    
-    // Intercept clicks on locked items
-    .setOnLockedItemClicked { item, onUnlocked ->
-        // Show your Rewarded Video Ad:
-        AdMobRewardedAd.show(this@MainActivity) {
-            // User completed ad -> Grant 12-Hour VIP Pass!
-            lockProvider.grantTimedPass(hours = 12)
-            onUnlocked() // Lock badges disappear and item is immediately selected!
-        }
-    }
-    .setOnTypographyApplied { typography ->
-        typography.applyTo(textView)
-    }
-    .show()
+   .setConfig(currentTypography)
+   .setFonts(fontList)
+   .setLockProvider(lockProvider)
+
+   // Intercept clicks on locked items
+   .setOnLockedItemClicked { item, onUnlocked ->
+      // Show your Rewarded Video Ad:
+      AdMobRewardedAd.show(this@MainActivity) {
+         // User completed ad -> Grant 12-Hour VIP Pass!
+         lockProvider.grantTimedPass(hours = 12)
+         onUnlocked() // Lock badges disappear and item is immediately selected!
+      }
+   }
+   .setOnTypographyApplied { typography ->
+      typography.applyTo(textView)
+   }
+   .show()
 ```
 
 ### Daily Usage Quota Manager (`UsageQuotaManager`)
@@ -184,12 +184,12 @@ val quotaManager = UsageQuotaManager(context, defaultDailyQuota = 3)
 
 // Check if user has quota remaining
 if (quotaManager.consumeEdit()) {
-    // Edit allowed
+   // Edit allowed
 } else {
-    // Prompt rewarded ad to unlock 5 bonus edits or a 12-hour pass
-    AdMobRewardedAd.show(activity) {
-        quotaManager.addBonusEdits(5)
-    }
+   // Prompt rewarded ad to unlock 5 bonus edits or a 12-hour pass
+   AdMobRewardedAd.show(activity) {
+      quotaManager.addBonusEdits(5)
+   }
 }
 ```
 

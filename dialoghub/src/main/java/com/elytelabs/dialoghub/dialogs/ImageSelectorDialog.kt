@@ -19,6 +19,7 @@ import com.elytelabs.dialoghub.monetization.DefaultItemLockProvider
 import com.elytelabs.dialoghub.monetization.ItemLockProvider
 import com.elytelabs.dialoghub.monetization.LockableItem
 import androidx.core.graphics.drawable.toDrawable
+import com.elytelabs.dialoghub.models.StudioTab
 
 /**
  * Dialog for selecting background drawable images, custom photos from gallery, or custom colors.
@@ -151,13 +152,21 @@ class ImageSelectorDialog(private val context: Context) {
 
         adapter.setOnColorPickerClickListener {
             TextStudioDialog.Builder(context)
-                .setTabs(com.elytelabs.dialoghub.models.StudioTab.COLOR)
+                .setTitle("Background Color")
+                .setTabs(StudioTab.COLOR)
                 .setShowPreviewPane(false)
                 .apply {
                     lockProvider?.let { setLockProvider(it) }
                     lockedItemClickListener?.let { listener ->
                         setOnLockedItemClicked(listener)
                     }
+                }
+                .setOnLivePreviewListener { live ->
+                    imagePickerListener?.onColorSelected(live.textColor)
+                }
+                .setOnResetListener {
+                    imagePickerListener?.onColorSelected(Color.TRANSPARENT)
+                    com.elytelabs.dialoghub.models.TextTypographyConfig(textColor = Color.TRANSPARENT)
                 }
                 .setOnTypographyApplied { applied ->
                     imagePickerListener?.onColorSelected(applied.textColor)

@@ -77,15 +77,17 @@ class FontStyleAdapter(private val context: Context)
         holder.selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
 
         holder.itemView.setOnClickListener {
+            val pos = fonts.indexOf(fontRes)
+            val targetPos = if (pos != -1) pos else holder.bindingAdapterPosition
             if (isLocked) {
                 onLockedItemClickListener?.invoke(LockableItem.Font(fontRes)) {
-                    selectedPosition = holder.bindingAdapterPosition
+                    selectedPosition = if (pos != -1) pos else targetPos
                     selectedFontResId = fontRes
                     notifyItemRangeChanged(0, itemCount)
                     onFontClickListener?.invoke(fontRes)
                 }
             } else {
-                selectedPosition = holder.bindingAdapterPosition
+                selectedPosition = targetPos
                 selectedFontResId = fontRes
                 notifyItemRangeChanged(0, itemCount)
                 onFontClickListener?.invoke(fontRes)
